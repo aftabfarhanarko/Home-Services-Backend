@@ -13,12 +13,11 @@ export class SmsService {
   ) { }
 
   async sendOtp(phone: string, otp: string): Promise<boolean> {
-    const username = this.configService.get<string>('C3000969');
-    const password = this.configService.get<string>('1s2s3s4s5s@S');
-    const senderId = this.configService.get<string>('8809617625025');
+    const apiKey = this.configService.get<string>('SMS_API_KEY', 'C3000969672258e72e9e57.58245160');
+    const senderId = this.configService.get<string>('SMS_SENDER_ID', '8809617625025');
     const baseUrl = 'https://sms.mram.com.bd/smsapi';
 
-    if (!username || !password || !senderId) {
+    if (!apiKey || !senderId) {
       this.logger.warn('SMS credentials not found. Simulating OTP send.');
       this.logger.log(`[SIMULATED SMS] To: ${phone}, OTP: ${otp}`);
       return true;
@@ -27,23 +26,25 @@ export class SmsService {
     const message = `Your OTP code for Rajsheba is ${otp}. It will expire in 5 minutes.`;
 
     try {
+      // Following the API documentation provided
       const response = await firstValueFrom(
         this.httpService.post(baseUrl, {
-          username: username,
-          password: password,
-          senderid: senderId,
+          api_key: apiKey,
+          type: 'text',
           contacts: phone,
+          senderid: senderId,
           msg: message,
-          type: 'text'
+          label: 'transactional',
         }),
       );
 
-      // Check response based on the API. Adjust condition if documentation provides specific success codes.
-      if (response.data && response.status === 200) {
-        this.logger.log(`OTP sent to ${phone} successfully`);
+      // API returns an SMS ID on success or a 4-digit error code (e.g., 1002, 1003)
+      const dataStr = String(response.data);
+      if (response.status === 200 && !dataStr.startsWith('10')) {
+        this.logger.log(`OTP sent to ${phone} successfully. SMS ID: ${dataStr}`);
         return true;
       } else {
-        this.logger.error(`Failed to send OTP to ${phone}:`, response.data);
+        this.logger.error(`Failed to send OTP to ${phone}. Error Code: ${dataStr}`);
         return false;
       }
     } catch (error) {
