@@ -5,6 +5,7 @@ import { UpdateRoleDto } from './dto/update-role.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { Roles } from './decorators/roles.decorator';
+import { Public } from '../auth/decorators/public.decorator';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('roles')
@@ -18,6 +19,17 @@ export class RolesController {
     return {
       statusCode: HttpStatus.CREATED,
       message: 'Role created successfully',
+      data,
+    };
+  }
+
+  @Public()
+  @Get('public')
+  async findAllPublic() {
+    const data = await this.rolesService.findAll();
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Roles retrieved successfully',
       data,
     };
   }

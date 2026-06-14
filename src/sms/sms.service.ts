@@ -13,12 +13,13 @@ export class SmsService {
   ) { }
 
   async sendOtp(phone: string, otp: string): Promise<boolean> {
-    const apiKey = this.configService.get<string>('UivVa73bujGUIqNCr6s6');
+    const username = this.configService.get<string>('C3000969');
+    const password = this.configService.get<string>('1s2s3s4s5s@S');
     const senderId = this.configService.get<string>('8809617625025');
-    const baseUrl = 'http://bulksmsbd.net/api/smsapi';
+    const baseUrl = 'https://sms.mram.com.bd/smsapi';
 
-    if (!apiKey || !senderId) {
-      this.logger.warn('Bulk SMS BD credentials not found. Simulating OTP send.');
+    if (!username || !password || !senderId) {
+      this.logger.warn('SMS credentials not found. Simulating OTP send.');
       this.logger.log(`[SIMULATED SMS] To: ${phone}, OTP: ${otp}`);
       return true;
     }
@@ -28,15 +29,17 @@ export class SmsService {
     try {
       const response = await firstValueFrom(
         this.httpService.post(baseUrl, {
-          api_key: apiKey,
+          username: username,
+          password: password,
           senderid: senderId,
-          number: phone,
-          message: message,
+          contacts: phone,
+          msg: message,
+          type: 'text'
         }),
       );
 
-      // Check response based on Bulk SMS BD documentation. Usually returns success status.
-      if (response.data && response.data.response_code === 202) {
+      // Check response based on the API. Adjust condition if documentation provides specific success codes.
+      if (response.data && response.status === 200) {
         this.logger.log(`OTP sent to ${phone} successfully`);
         return true;
       } else {
