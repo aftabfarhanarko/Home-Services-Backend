@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsUrl, IsNotEmpty, IsNumber } from 'class-validator';
+import { IsString, IsOptional, IsUrl, IsNotEmpty, IsNumber, IsArray } from 'class-validator';
 
 export class CreateServiceDto {
   @IsNotEmpty()
@@ -26,8 +26,9 @@ export class CreateServiceDto {
   banner?: string;
 
   @IsOptional()
-  @IsNumber()
-  employee_id?: number;
+  @IsArray()
+  @IsNumber({}, { each: true })
+  employee_ids?: number[];
 
   @IsOptional()
   @IsNumber()

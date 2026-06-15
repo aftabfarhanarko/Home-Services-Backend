@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, OneToMany, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, OneToMany, ManyToMany, JoinTable, ManyToOne, JoinColumn } from 'typeorm';
 import { Category } from '../../category/entities/category.entity';
 import { NestedService } from '../../nested-service/entities/nested-service.entity';
 import { Package } from '../../package/entities/package.entity';
@@ -27,9 +27,9 @@ export class Service {
   @Column({ nullable: true })
   banner: string;
 
-  @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
-  @JoinColumn({ name: 'employee_id' })
-  employee: User;
+  @ManyToMany(() => User)
+  @JoinTable({ name: 'service_employees' })
+  employees: User[];
 
   @ManyToOne(() => Category, category => category.services, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'category_id' })
