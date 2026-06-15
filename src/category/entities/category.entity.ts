@@ -1,4 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, OneToMany } from 'typeorm';
+import { Service } from '../../service/entities/service.entity';
 
 @Entity('categories')
 export class Category {
@@ -22,6 +23,9 @@ export class Category {
 
   @OneToMany(() => Category, category => category.parent)
   children: Category[];
+
+  @OneToMany(() => Service, service => service.category)
+  services: Service[];
 
   @CreateDateColumn()
   createdAt: Date;

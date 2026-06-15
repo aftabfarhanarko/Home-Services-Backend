@@ -22,6 +22,14 @@ export class CreateServiceDto {
   image?: string;
 
   @IsOptional()
+  @IsUrl()
+  banner?: string;
+
+  @IsOptional()
   @IsNumber()
   employee_id?: number;
+
+  @IsOptional()
+  @IsNumber()
+  category_id?: number;
 }
