@@ -1,10 +1,11 @@
-import { IsArray, IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsEnum, IsNotEmpty, IsOptional } from 'class-validator';
 import { Permission } from '../enums/permission.enum';
+import { RoleType } from '../entities/role.entity';
 
 export class CreateRoleDto {
   @IsNotEmpty()
-  @IsString()
-  name: string;
+  @IsEnum(RoleType)
+  name: RoleType;
 
   @IsOptional()
   @IsArray()
