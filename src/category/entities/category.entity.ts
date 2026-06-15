@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, OneToMany } from 'typeorm';
 
 @Entity('categories')
 export class Category {
@@ -16,6 +16,12 @@ export class Category {
 
   @Column({ type: 'int', nullable: true, default: 0 })
   order: number;
+
+  @ManyToOne(() => Category, category => category.children, { nullable: true, onDelete: 'SET NULL' })
+  parent: Category | null;
+
+  @OneToMany(() => Category, category => category.parent)
+  children: Category[];
 
   @CreateDateColumn()
   createdAt: Date;

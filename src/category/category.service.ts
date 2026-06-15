@@ -13,12 +13,23 @@ export class CategoryService {
   ) {}
 
   async create(createCategoryDto: CreateCategoryDto): Promise<Category> {
-    const category = this.categoryRepository.create(createCategoryDto);
+    const { parentId, ...rest } = createCategoryDto;
+    const category = this.categoryRepository.create(rest);
+
+    if (parentId) {
+      const parent = await this.categoryRepository.findOne({ where: { id: parentId } });
+      if (!parent) {
+        throw new NotFoundException(`Parent category with ID ${parentId} not found`);
+      }
+      category.parent = parent;
+    }
+
     return this.categoryRepository.save(category);
   }
 
   async findAll(): Promise<Category[]> {
     return this.categoryRepository.find({
+      relations: { children: true, parent: true },
       order: {
         order: 'ASC',
         createdAt: 'DESC',
@@ -27,7 +38,10 @@ export class CategoryService {
   }
 
   async findOne(id: number): Promise<Category> {
-    const category = await this.categoryRepository.findOne({ where: { id } });
+    const category = await this.categoryRepository.findOne({ 
+      where: { id },
+      relations: { children: true, parent: true }
+    });
     if (!category) {
       throw new NotFoundException(`Category with ID ${id} not found`);
     }
@@ -35,10 +49,24 @@ export class CategoryService {
   }
 
   async update(id: number, updateCategoryDto: UpdateCategoryDto): Promise<Category> {
+    const { parentId, ...rest } = updateCategoryDto;
+    
     const category = await this.categoryRepository.preload({
       id,
-      ...updateCategoryDto,
+      ...rest,
     });
+
+    if (category && parentId !== undefined) {
+      if (parentId === null) {
+        category.parent = null;
+      } else {
+        const parent = await this.categoryRepository.findOne({ where: { id: parentId } });
+        if (!parent) {
+          throw new NotFoundException(`Parent category with ID ${parentId} not found`);
+        }
+        category.parent = parent;
+      }
+    }
 
     if (!category) {
       throw new NotFoundException(`Category with ID ${id} not found`);

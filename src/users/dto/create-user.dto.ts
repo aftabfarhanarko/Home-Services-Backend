@@ -24,4 +24,8 @@ export class CreateUserDto {
   @IsOptional()
   @IsEnum(UserStatus)
   status?: UserStatus;
+
+  @IsOptional()
+  @IsNumber()
+  vendor_id?: number;
 }

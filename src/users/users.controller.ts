@@ -44,6 +44,17 @@ export class UsersController {
     };
   }
 
+  @Public()
+  @Get('employees/vendor/:vendorId')
+  async findEmployeesByVendor(@Param('vendorId') vendorId: string) {
+    const data = await this.usersService.findEmployeesByVendor(+vendorId);
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Employees retrieved successfully',
+      data,
+    };
+  }
+
   @Roles('Super Admin', 'Agent', 'Vendor', 'Client')
   @Get(':id')
   async findOne(@Param('id') id: string) {

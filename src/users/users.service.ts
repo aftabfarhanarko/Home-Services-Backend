@@ -21,8 +21,16 @@ export class UsersService {
     const user = this.userRepository.create({
       ...createUserDto,
       role: createUserDto.roleId ? { id: createUserDto.roleId } as any : undefined,
+      vendor: createUserDto.vendor_id ? { id: createUserDto.vendor_id } as any : undefined,
     });
     return this.userRepository.save(user);
+  }
+
+  async findEmployeesByVendor(vendorId: number): Promise<User[]> {
+    return this.userRepository.find({
+      where: { vendor: { id: vendorId } },
+      relations: { role: true },
+    });
   }
 
   async findAll(): Promise<User[]> {

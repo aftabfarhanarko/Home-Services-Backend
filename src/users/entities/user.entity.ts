@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
 import { Role } from '../../roles/entities/role.entity';
 
 export enum UserStatus {
@@ -21,9 +21,25 @@ export class User {
   @Column({ nullable: true })
   email: string;
 
+  @Column({ nullable: true })
+  password: string;
+
   @ManyToOne(() => Role, (role) => role.users, { nullable: true })
   @JoinColumn({ name: 'roleId' })
   role: Role;
+
+  @ManyToOne(() => User, user => user.employees, { nullable: true })
+  @JoinColumn({ name: 'vendor_id' })
+  vendor: User;
+
+  @OneToMany(() => User, user => user.vendor)
+  employees: User[];
+
+  @Column({ nullable: true })
+  vendor_unique_id: string;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+  wallet_balance: number;
 
   @Column({
     type: 'enum',

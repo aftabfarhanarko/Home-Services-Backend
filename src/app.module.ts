@@ -9,6 +9,13 @@ import { AuthModule } from './auth/auth.module';
 import { RolesModule } from './roles/roles.module';
 import { SmsModule } from './sms/sms.module';
 import { CategoryModule } from './category/category.module';
+import { ServiceModule } from './service/service.module';
+import { PackageModule } from './package/package.module';
+import { BookingModule } from './booking/booking.module';
+import { WithdrawModule } from './withdraw/withdraw.module';
+import { NestedServiceModule } from './nested-service/nested-service.module';
+import { ReviewModule } from './review/review.module';
+import { ProfileModule } from './profile/profile.module';
 
 @Module({
   imports: [
@@ -34,6 +41,13 @@ import { CategoryModule } from './category/category.module';
     RolesModule,
     SmsModule,
     CategoryModule,
+    ServiceModule,
+    PackageModule,
+    BookingModule,
+    WithdrawModule,
+    NestedServiceModule,
+    ReviewModule,
+    ProfileModule,
   ],
   controllers: [AppController],
   providers: [AppService],

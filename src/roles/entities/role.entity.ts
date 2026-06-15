@@ -2,13 +2,25 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
 import { User } from '../../users/entities/user.entity';
 import { Permission } from '../enums/permission.enum';
 
+export enum RoleType {
+  SUPER_ADMIN = 'Super Admin',
+  AGENT = 'Agent',
+  VENDOR = 'Vendor',
+  EMPLOYEE = 'Employee',
+  CLIENT = 'Client',
+}
+
 @Entity('roles')
 export class Role {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ unique: true })
-  name: string;
+  @Column({
+    type: 'enum',
+    enum: RoleType,
+    unique: true,
+  })
+  name: RoleType;
 
   @Column({
     type: 'enum',
