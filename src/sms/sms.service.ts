@@ -13,8 +13,8 @@ export class SmsService {
   ) { }
 
   async sendOtp(phone: string, otp: string): Promise<boolean> {
-    const apiKey = this.configService.get<string>('SMS_API_KEY', 'C3000969672258e72e9e57.58245160');
-    const senderId = this.configService.get<string>('SMS_SENDER_ID', '8809617625025');
+    const apiKey = 'C30009696a2fb72e7cc260.50730368';
+    const senderId = '8809601013613';
     const baseUrl = 'https://sms.mram.com.bd/smsapi';
 
     if (!apiKey || !senderId) {
@@ -27,15 +27,15 @@ export class SmsService {
 
     try {
       // Following the API documentation provided
+      // MRAM expects the number with 88 prefix
+      const formattedPhone = phone.length === 11 && phone.startsWith('01') ? `88${phone}` : phone;
+
+      // Construct the exact URL to avoid any axios encoding issues with the PHP backend
+      const requestUrl = `${baseUrl}?api_key=${apiKey}&type=text&contacts=${formattedPhone}&senderid=${senderId}&msg=${encodeURIComponent(message)}`;
+
+      // Send the GET request
       const response = await firstValueFrom(
-        this.httpService.post(baseUrl, {
-          api_key: apiKey,
-          type: 'text',
-          contacts: phone,
-          senderid: senderId,
-          msg: message,
-          label: 'transactional',
-        }),
+        this.httpService.get(requestUrl),
       );
 
       // API returns an SMS ID on success or a 4-digit error code (e.g., 1002, 1003)
