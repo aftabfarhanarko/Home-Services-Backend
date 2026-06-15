@@ -13,9 +13,9 @@ export class SmsService {
   ) { }
 
   async sendOtp(phone: string, otp: string): Promise<boolean> {
-    const apiKey = 'C30009696a2fb72e7cc260.50730368';
-    const senderId = '8809601013613';
-    const baseUrl = 'https://sms.mram.com.bd/smsapi';
+    const apiKey = 'UivVa73bujGUIqNCr6s6';
+    const senderId = '8809617625025';
+    const baseUrl = 'http://bulksmsbd.net/api/smsapi';
 
     if (!apiKey || !senderId) {
       this.logger.warn('SMS credentials not found. Simulating OTP send.');
@@ -23,7 +23,7 @@ export class SmsService {
       return true;
     }
 
-    const message = `Your OTP code for Rajsheba is ${otp}. It will expire in 5 minutes.`;
+    const message = `Your Rajsheba OTP is ${otp}`;
 
     try {
       // Following the API documentation provided
@@ -31,7 +31,7 @@ export class SmsService {
       const formattedPhone = phone.length === 11 && phone.startsWith('01') ? `88${phone}` : phone;
 
       // Construct the exact URL to avoid any axios encoding issues with the PHP backend
-      const requestUrl = `${baseUrl}?api_key=${apiKey}&type=text&contacts=${formattedPhone}&senderid=${senderId}&msg=${encodeURIComponent(message)}`;
+      const requestUrl = `${baseUrl}?api_key=${apiKey}&type=text&number=${formattedPhone}&senderid=${senderId}&message=${encodeURIComponent(message)}`;
 
       // Send the GET request
       const response = await firstValueFrom(
