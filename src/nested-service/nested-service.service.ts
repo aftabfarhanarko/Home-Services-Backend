@@ -12,32 +12,31 @@ export class NestedServiceService {
     private readonly nestedServiceRepository: Repository<NestedService>,
   ) {}
 
-  async create(createNestedServiceDto: CreateNestedServiceDto, vendorId: number) {
+  async create(createNestedServiceDto: CreateNestedServiceDto) {
     const nestedService = this.nestedServiceRepository.create({
       ...createNestedServiceDto,
       service: { id: createNestedServiceDto.service_id },
-      vendor: { id: vendorId },
     });
     return await this.nestedServiceRepository.save(nestedService);
   }
 
   async findAll() {
     return await this.nestedServiceRepository.find({
-      relations: { service: true, vendor: true },
+      relations: { service: true },
     });
   }
 
   async findByServiceId(serviceId: number) {
     return await this.nestedServiceRepository.find({
       where: { service: { id: serviceId } },
-      relations: { vendor: true },
+      relations: { service: true },
     });
   }
 
   async findOne(id: number) {
     const nestedService = await this.nestedServiceRepository.findOne({
       where: { id },
-      relations: { service: true, vendor: true },
+      relations: { service: true },
     });
     if (!nestedService) {
       throw new NotFoundException(`Nested Service with ID ${id} not found`);

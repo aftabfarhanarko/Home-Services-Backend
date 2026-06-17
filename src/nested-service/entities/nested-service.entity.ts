@@ -1,6 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { Service } from '../../service/entities/service.entity';
-import { User } from '../../users/entities/user.entity';
 
 @Entity('nested_services')
 export class NestedService {
@@ -11,9 +10,7 @@ export class NestedService {
   @JoinColumn({ name: 'service_id' })
   service: Service;
 
-  @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
-  @JoinColumn({ name: 'vendor_id' })
-  vendor: User;
+
 
   @Column()
   name: string;

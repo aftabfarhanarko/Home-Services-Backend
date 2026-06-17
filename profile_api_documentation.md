@@ -1,33 +1,30 @@
 # Profile API Documentation
 
-This document provides details on the available endpoints for managing user profiles within the Rajsheba application. It is intended for frontend developers integrating the Profile management features.
+This document provides details on the `Profile` API endpoints available in the Rajsheba application.
 
 ## Base URL
 `/profiles`
 
-## Enums and Types
-
-### ProfileType
-The `type` of a profile must be one of these predefined values:
-- `personal`
-- `company`
-
-### Profile Object
-```typescript
-interface Profile {
-  id: number;
-  user: User; // Full User object relation
-  type: "personal" | "company";
-  rating: number; // Work rating for personal, company rating for company
-  total_projects: number; // Total work done for personal, total projects for company
-  location: string | null;
-  description: string | null;
-  company_name: string | null; // For company profiles
-  min_starting_price: number | null; // For company profiles
-  google_map_link: string | null; // For company profiles
-  category: Category | null; // Full Category object relation
-  createdAt: string; // ISO 8601 Date
-  updatedAt: string; // ISO 8601 Date
+## Data Model (Profile)
+```json
+{
+  "id": 1,
+  "type": "personal", // "personal" | "company"
+  "rating": 4.5, // Work rating for personal, company rating for company
+  "total_projects": 12, // Total work done for personal, total projects for company
+  "location": "Dhaka, Bangladesh",
+  "description": "Experienced AC technician with 5 years of experience.",
+  "company_name": "Cooling Experts Ltd.", // Applicable mainly for 'company' type
+  "min_starting_price": 500.00,
+  "google_map_link": "https://maps.google.com/...",
+  "createdAt": "2024-06-16T12:00:00.000Z",
+  "updatedAt": "2024-06-16T12:00:00.000Z",
+  "user": {
+    // Associated User object details
+  },
+  "category": {
+    // Associated Category object details
+  }
 }
 ```
 
@@ -35,143 +32,100 @@ interface Profile {
 
 ## Endpoints
 
-### 1. Create Profile
-Create a new profile. If `user_id` is not provided in the request body, it will automatically use the ID of the currently authenticated user.
-
-- **Method:** `POST`
-- **Path:** `/profiles`
-- **Authentication:** `Bearer Token` required (`JwtAuthGuard`)
-- **Request Body:**
+### 1. Create a Profile
+- **Endpoint**: `POST /profiles`
+- **Description**: Creates a new profile. Defaults `user_id` to the currently authenticated user if not provided.
+- **Authorization**: Required (`Bearer Token`)
+- **Request Body**:
   ```json
   {
-    "type": "personal", // Required. "personal" or "company"
-    "location": "Dhaka, Bangladesh", // Optional
-    "description": "Expert in web development", // Optional
-    "company_name": "Tech Solutions", // Optional, useful if type is "company"
-    "min_starting_price": 500, // Optional
-    "google_map_link": "https://maps.google.com/...", // Optional
-    "user_id": 1, // Optional. Defaults to the logged-in user if omitted.
-    "category_id": 2 // Optional
+    "type": "personal",
+    "location": "Dhaka, Bangladesh",
+    "description": "Expert in home appliance repair.",
+    "category_id": 1
   }
   ```
-- **Response:**
+  | Field | Type | Required | Description |
+  |-------|------|----------|-------------|
+  | `type` | string (enum) | Yes | Either `"personal"` or `"company"`. |
+  | `location` | string | No | Physical location or service area. |
+  | `description` | string | No | About the person or company. |
+  | `company_name` | string | No | Name of the company. |
+  | `min_starting_price`| number | No | Minimum starting price for services. |
+  | `google_map_link` | string (URL)| No | Google Maps link for the business location. |
+  | `user_id` | number | No | ID of the user. Automatically inferred from JWT if omitted. |
+  | `category_id` | number | No | ID of the associated category. |
+
+- **Response**:
   ```json
   {
     "statusCode": 201,
     "message": "Profile created successfully",
-    "data": {
-      "id": 1,
-      "type": "personal",
-      "location": "Dhaka, Bangladesh",
-      "description": "Expert in web development",
-      "rating": 0,
-      "total_projects": 0,
-      "user": { "id": 1 },
-      "category": { "id": 2 },
-      "createdAt": "2024-06-16T12:00:00.000Z",
-      "updatedAt": "2024-06-16T12:00:00.000Z"
-    }
+    "data": { /* Created Profile Object */ }
   }
   ```
 
----
-
 ### 2. Get All Profiles
-Retrieve a list of all profiles. This endpoint is public and does not require authentication. It includes relations for the `user` and `category`.
-
-- **Method:** `GET`
-- **Path:** `/profiles`
-- **Authentication:** `Public`
-- **Response:**
+- **Endpoint**: `GET /profiles`
+- **Description**: Retrieves a list of all profiles.
+- **Authorization**: None required
+- **Response**:
   ```json
   {
     "statusCode": 200,
     "message": "Profiles retrieved successfully",
     "data": [
-      {
-        "id": 1,
-        "type": "personal",
-        "location": "Dhaka, Bangladesh",
-        "description": "Expert in web development",
-        "rating": 0,
-        "total_projects": 0,
-        "user": { /* User object details */ },
-        "category": { /* Category object details */ },
-        "createdAt": "2024-06-16T12:00:00.000Z",
-        "updatedAt": "2024-06-16T12:00:00.000Z"
-      }
+      { /* Profile Object 1 */ },
+      { /* Profile Object 2 */ }
     ]
   }
   ```
 
----
-
-### 3. Get Profile By ID
-Retrieve the details of a specific profile by its ID. Includes relations for the `user` and `category`.
-
-- **Method:** `GET`
-- **Path:** `/profiles/:id`
-- **Authentication:** `Public`
-- **Parameters:**
+### 3. Get a Single Profile by ID
+- **Endpoint**: `GET /profiles/:id`
+- **Description**: Retrieves details of a specific profile by its ID.
+- **Authorization**: None required
+- **Path Parameters**:
   - `id` (number): The ID of the profile.
-- **Response:**
+- **Response**:
   ```json
   {
     "statusCode": 200,
     "message": "Profile retrieved successfully",
-    "data": {
-      "id": 1,
-      "type": "personal",
-      // ... profile details
-      "user": { /* User object details */ },
-      "category": { /* Category object details */ }
-    }
+    "data": { /* Profile Object */ }
   }
   ```
 
----
-
-### 4. Update Profile
-Update an existing profile's information. 
-
-- **Method:** `PATCH`
-- **Path:** `/profiles/:id`
-- **Authentication:** `Bearer Token` required (`JwtAuthGuard`)
-- **Parameters:**
-  - `id` (number): The ID of the profile.
-- **Request Body (Partial update):**
+### 4. Update a Profile
+- **Endpoint**: `PATCH /profiles/:id`
+- **Description**: Updates an existing profile.
+- **Authorization**: Required (`Bearer Token`)
+- **Path Parameters**:
+  - `id` (number): The ID of the profile to update.
+- **Request Body**:
+  Fields are optional. Only provided fields will be updated.
   ```json
   {
-    "description": "Updated description",
-    "min_starting_price": 600,
-    "category_id": 3
+    "location": "Chittagong, Bangladesh",
+    "rating": 4.8
   }
   ```
-- **Response:**
+- **Response**:
   ```json
   {
     "statusCode": 200,
     "message": "Profile updated successfully",
-    "data": {
-      "id": 1,
-      "type": "personal",
-      "description": "Updated description",
-      // ... updated profile details
-    }
+    "data": { /* Updated Profile Object */ }
   }
   ```
 
----
-
-### 5. Delete Profile
-Remove a profile from the system by ID.
-
-- **Method:** `DELETE`
-- **Path:** `/profiles/:id`
-- **Authentication:** `Bearer Token` required (`JwtAuthGuard`)
-- **Parameters:**
-  - `id` (number): The ID of the profile.
-- **Response:**
+### 5. Delete a Profile
+- **Endpoint**: `DELETE /profiles/:id`
+- **Description**: Soft deletes a profile.
+- **Authorization**: Required (`Bearer Token`)
+- **Path Parameters**:
+  - `id` (number): The ID of the profile to delete.
+- **Response**:
   ```json
   {
     "statusCode": 200,

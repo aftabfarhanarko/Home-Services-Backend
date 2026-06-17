@@ -1,4 +1,5 @@
 import { IsEmail, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, Matches } from 'class-validator';
+import { Transform } from 'class-transformer';
 import { UserStatus } from '../entities/user.entity';
 
 export class CreateUserDto {
@@ -8,6 +9,7 @@ export class CreateUserDto {
 
   @IsNotEmpty()
   @IsString()
+  @Transform(({ value }) => value?.match(/^(?:\+88|88)?(01[3-9]\d{8})$/)?.[1] || value)
   @Matches(/^(?:\+88|88)?(01[3-9]\d{8})$/, {
     message: 'Phone number must be a valid Bangladeshi number',
   })

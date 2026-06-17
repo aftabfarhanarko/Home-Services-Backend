@@ -31,6 +31,10 @@ export class Service {
   @JoinTable({ name: 'service_employees' })
   employees: User[];
 
+  @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'vendor_id' })
+  vendor: User;
+
   @ManyToOne(() => Category, category => category.services, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'category_id' })
   category: Category;

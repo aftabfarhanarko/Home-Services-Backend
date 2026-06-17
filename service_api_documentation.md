@@ -17,8 +17,9 @@ Base URL: `/services`
     "description": "Full details about the home cleaning service...",
     "image": "https://example.com/image.jpg",
     "banner": "https://example.com/banner.jpg",
-    "employee_id": 1,
-    "category_id": 2
+    "employee_ids": [1, 2],
+    "category_id": 2,
+    "vendor_id": 3
   }
   ```
   - `name` (string, required): The name of the service.
@@ -27,8 +28,9 @@ Base URL: `/services`
   - `description` (string, optional): Detailed description.
   - `image` (string, optional): URL for the service image.
   - `banner` (string, optional): URL for the service banner.
-  - `employee_id` (number, optional): The ID of the employee associated with the service.
+  - `employee_ids` (array of numbers, optional): The IDs of the employees associated with the service.
   - `category_id` (number, optional): The ID of the category this service belongs to.
+  - `vendor_id` (number, optional): The ID of the vendor this service belongs to.
 
 - **Response** (Success - `201 CREATED`):
   ```json

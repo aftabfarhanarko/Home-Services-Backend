@@ -9,8 +9,7 @@ export class NestedServiceController {
 
   @Post()
   async create(@Body() createNestedServiceDto: CreateNestedServiceDto) {
-    const vendorId = 1; // placeholder
-    const data = await this.nestedServiceService.create(createNestedServiceDto, vendorId);
+    const data = await this.nestedServiceService.create(createNestedServiceDto);
     return {
       statusCode: HttpStatus.CREATED,
       message: 'Nested Service created successfully',

@@ -33,4 +33,8 @@ export class CreateServiceDto {
   @IsOptional()
   @IsNumber()
   category_id?: number;
+
+  @IsOptional()
+  @IsNumber()
+  vendor_id?: number;
 }
