@@ -1,5 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, OneToMany, OneToOne } from 'typeorm';
 import { Role } from '../../roles/entities/role.entity';
+import { Profile } from '../../profile/entities/profile.entity';
 
 export enum UserStatus {
   ACTIVE = 'active',
@@ -28,6 +29,9 @@ export class User {
   @JoinColumn({ name: 'roleId' })
   role: Role;
 
+  @OneToOne(() => Profile, profile => profile.user)
+  profile: Profile;
+
   @ManyToOne(() => User, user => user.employees, { nullable: true })
   @JoinColumn({ name: 'vendor_id' })
   vendor: User;
@@ -35,8 +39,8 @@ export class User {
   @OneToMany(() => User, user => user.vendor)
   employees: User[];
 
-  @Column({ nullable: true })
-  vendor_unique_id: string;
+  @Column({ type: 'varchar', nullable: true })
+  vendor_unique_id: string | null;
 
   @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
   wallet_balance: number;

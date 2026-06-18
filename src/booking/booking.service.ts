@@ -13,11 +13,13 @@ export class BookingService {
   ) {}
 
   async create(createBookingDto: CreateBookingDto, userId: number) {
+    const finalUserId = createBookingDto.user_id || userId;
     const bookingData: any = {
       ...createBookingDto,
-      user: { id: userId },
+      user: { id: finalUserId },
       vendor: { id: createBookingDto.vendor_id },
     };
+    delete bookingData.user_id;
     if (createBookingDto.nested_service_id) {
       bookingData.nestedService = { id: createBookingDto.nested_service_id };
     }
@@ -34,7 +36,7 @@ export class BookingService {
     if (user?.role === 'Vendor') {
       whereCondition = { vendor: { id: user.sub } };
     } else if (user?.role === 'Employee') {
-      whereCondition = { employee: { id: user.sub } };
+      whereCondition = { employees: { id: user.sub } };
     } else if (user?.role !== 'Super Admin') {
       // For normal users or clients
       whereCondition = { user: { id: user.sub } };
@@ -42,28 +44,28 @@ export class BookingService {
 
     return await this.bookingRepository.find({
       where: whereCondition,
-      relations: { user: true, vendor: true, employee: true, nestedService: true, pkg: true },
+      relations: { user: true, vendor: true, employees: true, nestedService: true, pkg: true },
     });
   }
 
   async findByVendor(vendorId: number) {
     return await this.bookingRepository.find({
       where: { vendor: { id: vendorId } },
-      relations: { user: true, employee: true, nestedService: true, pkg: true },
+      relations: { user: true, employees: true, nestedService: true, pkg: true },
     });
   }
 
   async findByUser(userId: number) {
     return await this.bookingRepository.find({
       where: { user: { id: userId } },
-      relations: { vendor: true, employee: true, nestedService: true, pkg: true },
+      relations: { vendor: true, employees: true, nestedService: true, pkg: true },
     });
   }
 
   async findOne(id: number, user?: any) {
     const booking = await this.bookingRepository.findOne({
       where: { id },
-      relations: { user: true, vendor: true, employee: true, nestedService: true, pkg: true },
+      relations: { user: true, vendor: true, employees: true, nestedService: true, pkg: true },
     });
     if (!booking) {
       throw new NotFoundException(`Booking with ID ${id} not found`);
@@ -72,7 +74,7 @@ export class BookingService {
     if (user && user.role !== 'Super Admin') {
       const isOwner = booking.user?.id === user.sub;
       const isVendor = booking.vendor?.id === user.sub;
-      const isEmployee = booking.employee?.id === user.sub;
+      const isEmployee = booking.employees?.some((emp: any) => emp.id === user.sub);
 
       if (!isOwner && !isVendor && !isEmployee) {
         throw new NotFoundException(`Booking with ID ${id} not found`);
@@ -88,9 +90,9 @@ export class BookingService {
     return await this.bookingRepository.save(booking);
   }
 
-  async assignEmployee(bookingId: number, employeeId: number) {
+  async assignEmployees(bookingId: number, employeeIds: number[]) {
     const booking = await this.findOne(bookingId);
-    booking.employee = { id: employeeId } as any;
+    booking.employees = employeeIds.map(id => ({ id } as any));
     booking.status = BookingStatus.ASSIGNED;
     return await this.bookingRepository.save(booking);
   }

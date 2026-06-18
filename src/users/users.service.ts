@@ -29,16 +29,19 @@ export class UsersService {
   async findEmployeesByVendor(vendorId: number): Promise<User[]> {
     return this.userRepository.find({
       where: { vendor: { id: vendorId } },
-      relations: { role: true },
+      relations: { role: true, profile: { category: true } },
     });
   }
 
   async findAll(): Promise<User[]> {
-    return this.userRepository.find({ relations: { role: true } });
+    return this.userRepository.find({ relations: { role: true, profile: { category: true }, vendor: true } });
   }
 
   async findOne(id: number): Promise<User> {
-    const user = await this.userRepository.findOne({ where: { id }, relations: { role: true } });
+    const user = await this.userRepository.findOne({ 
+      where: { id }, 
+      relations: { role: true, profile: { category: true } } 
+    });
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }

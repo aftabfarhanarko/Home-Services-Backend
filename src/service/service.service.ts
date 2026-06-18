@@ -20,9 +20,11 @@ export class ServiceService {
     }
     if (createServiceDto.category_id) {
       serviceData.category = { id: createServiceDto.category_id };
+      delete serviceData.category_id;
     }
     if (createServiceDto.vendor_id) {
       serviceData.vendor = { id: createServiceDto.vendor_id };
+      delete serviceData.vendor_id;
     }
     const service = this.serviceRepository.create(serviceData);
     return await this.serviceRepository.save(service);
@@ -31,20 +33,20 @@ export class ServiceService {
   async findAll(user: any) {
     if (user?.role === 'Super Admin') {
       return await this.serviceRepository.find({
-        relations: { nestedServices: true, packages: true, employees: true, vendor: true },
+        relations: { nestedServices: true, packages: true, employees: true, vendor: true, category: true },
       });
     }
 
     return await this.serviceRepository.find({
       where: { employees: { id: user.sub } },
-      relations: { nestedServices: true, packages: true, employees: true, vendor: true },
+      relations: { nestedServices: true, packages: true, employees: true, vendor: true, category: true },
     });
   }
 
   async findOne(id: number) {
     const service = await this.serviceRepository.findOne({
       where: { id },
-      relations: { nestedServices: true, packages: true, employees: true, vendor: true },
+      relations: { nestedServices: true, packages: true, employees: true, vendor: true, category: true },
     });
     if (!service) {
       throw new NotFoundException(`Service with ID ${id} not found`);

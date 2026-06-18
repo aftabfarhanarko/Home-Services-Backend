@@ -74,11 +74,11 @@ export class BookingController {
   }
 
   @Post(':id/assign')
-  async assignEmployee(@Param('id') id: string, @Body('employee_id') employeeId: number) {
-    const data = await this.bookingService.assignEmployee(+id, employeeId);
+  async assignEmployees(@Param('id') id: string, @Body('employee_ids') employeeIds: number[]) {
+    const data = await this.bookingService.assignEmployees(+id, employeeIds);
     return {
       statusCode: HttpStatus.OK,
-      message: 'Employee assigned to booking successfully',
+      message: 'Employees assigned to booking successfully',
       data,
     };
   }

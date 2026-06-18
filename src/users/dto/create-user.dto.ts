@@ -30,4 +30,8 @@ export class CreateUserDto {
   @IsOptional()
   @IsNumber()
   vendor_id?: number;
+
+  @IsOptional()
+  @IsString()
+  vendor_unique_id?: string | null;
 }

@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, ManyToMany, JoinTable } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { NestedService } from '../../nested-service/entities/nested-service.entity';
 import { Package } from '../../package/entities/package.entity';
@@ -6,6 +6,7 @@ import { Package } from '../../package/entities/package.entity';
 export enum BookingStatus {
   PENDING = 'pending',
   ASSIGNED = 'assigned',
+  ON_THE_WAY = 'on_the_way',
   COMPLETED = 'completed',
   CANCELLED = 'cancelled',
 }
@@ -23,9 +24,9 @@ export class Booking {
   @JoinColumn({ name: 'vendor_id' })
   vendor: User;
 
-  @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
-  @JoinColumn({ name: 'employee_id' })
-  employee: User;
+  @ManyToMany(() => User, { nullable: true, onDelete: 'CASCADE' })
+  @JoinTable({ name: 'booking_employees' })
+  employees: User[];
 
   @ManyToOne(() => NestedService, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'nested_service_id' })
