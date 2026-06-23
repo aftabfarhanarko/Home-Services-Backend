@@ -6,7 +6,7 @@ import { UpdateServiceDto } from './dto/update-service.dto';
 
 @Controller('services')
 export class ServiceController {
-  constructor(private readonly serviceService: ServiceService) {}
+  constructor(private readonly serviceService: ServiceService) { }
 
   @Post()
   async create(@Body() createServiceDto: CreateServiceDto) {
