@@ -66,7 +66,7 @@ export class UsersController {
     };
   }
 
-  @Roles('Super Admin', 'Agent')
+  @Roles('Super Admin', 'Agent', 'Vendor', 'Client')
   @Patch(':id')
   async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     const data = await this.usersService.update(+id, updateUserDto);
