@@ -15,7 +15,7 @@ export class Service {
   @Column({ nullable: true })
   subtitle: string;
 
-  @Column({ unique: true })
+  @Column({ unique: true, nullable: true })
   slug: string;
 
   @Column({ type: 'text', nullable: true })
