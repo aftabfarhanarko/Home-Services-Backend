@@ -52,6 +52,7 @@ export class NestedServiceService {
     if (!nestedService) {
       throw new NotFoundException(`Nested Service with ID ${id} not found`);
     }
+    return nestedService;
   }
 
   async update(id: number, updateNestedServiceDto: UpdateNestedServiceDto) {
