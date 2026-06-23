@@ -19,7 +19,8 @@ export class CreateNestedServiceDto {
 
   @IsOptional()
   @IsNumber()
-  price?: number;
+  starting_price?: number;
 
-
+  @IsOptional()
+  sub_services?: { name: string; price: number }[];
 }

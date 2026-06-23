@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsNotEmpty, IsNumber, IsDateString } from 'class-validator';
+import { IsString, IsOptional, IsNotEmpty, IsNumber, IsDateString, IsArray } from 'class-validator';
 
 export class CreateBookingDto {
   @IsNotEmpty()
@@ -6,8 +6,9 @@ export class CreateBookingDto {
   vendor_id: number;
 
   @IsOptional()
-  @IsNumber()
-  nested_service_id?: number;
+  @IsArray()
+  @IsNumber({}, { each: true })
+  sub_service_ids?: number[];
 
   @IsOptional()
   @IsNumber()
@@ -16,6 +17,10 @@ export class CreateBookingDto {
   @IsNotEmpty()
   @IsDateString()
   date: string;
+
+  @IsOptional()
+  @IsString()
+  time?: string;
 
   @IsNotEmpty()
   @IsString()
@@ -28,4 +33,8 @@ export class CreateBookingDto {
   @IsOptional()
   @IsNumber()
   user_id?: number;
+
+  @IsOptional()
+  @IsNumber()
+  service_id?: number;
 }

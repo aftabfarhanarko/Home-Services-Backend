@@ -1,4 +1,4 @@
-import { IsEnum, IsNumber, IsOptional, IsString, IsUrl } from 'class-validator';
+import { IsArray, IsEnum, IsNumber, IsOptional, IsString, IsUrl } from 'class-validator';
 import { ProfileType } from '../entities/profile.entity';
 
 export class CreateProfileDto {
@@ -30,6 +30,19 @@ export class CreateProfileDto {
   user_id?: number;
 
   @IsOptional()
+  @IsArray()
+  @IsNumber({}, { each: true })
+  category_ids?: number[];
+
+  @IsOptional()
   @IsNumber()
-  category_id?: number;
+  devision_id?: number;
+
+  @IsOptional()
+  @IsNumber()
+  district_id?: number;
+
+  @IsOptional()
+  @IsNumber()
+  area_id?: number;
 }

@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus, UseGuards, Req } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PackageService } from './package.service';
 import { CreatePackageDto } from './dto/create-package.dto';
 import { UpdatePackageDto } from './dto/update-package.dto';
@@ -17,9 +18,10 @@ export class PackageController {
     };
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get()
-  async findAll() {
-    const data = await this.packageService.findAll();
+  async findAll(@Req() req: any) {
+    const data = await this.packageService.findAll(req.user);
     return {
       statusCode: HttpStatus.OK,
       message: 'Packages retrieved successfully',

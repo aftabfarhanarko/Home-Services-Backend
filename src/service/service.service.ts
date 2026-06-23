@@ -33,20 +33,27 @@ export class ServiceService {
   async findAll(user: any) {
     if (user?.role === 'Super Admin') {
       return await this.serviceRepository.find({
-        relations: { nestedServices: true, packages: true, employees: true, vendor: true, category: true },
+        relations: { nestedServices: { subServices: true }, packages: true, employees: true, vendor: true, category: true },
+      });
+    }
+
+    if (user?.role === 'Vendor') {
+      return await this.serviceRepository.find({
+        where: { vendor: { id: user.sub } },
+        relations: { nestedServices: { subServices: true }, packages: true, employees: true, vendor: true, category: true },
       });
     }
 
     return await this.serviceRepository.find({
       where: { employees: { id: user.sub } },
-      relations: { nestedServices: true, packages: true, employees: true, vendor: true, category: true },
+      relations: { nestedServices: { subServices: true }, packages: true, employees: true, vendor: true, category: true },
     });
   }
 
   async findOne(id: number) {
     const service = await this.serviceRepository.findOne({
       where: { id },
-      relations: { nestedServices: true, packages: true, employees: true, vendor: true, category: true },
+      relations: { nestedServices: { subServices: true }, packages: true, employees: true, vendor: true, category: true },
     });
     if (!service) {
       throw new NotFoundException(`Service with ID ${id} not found`);

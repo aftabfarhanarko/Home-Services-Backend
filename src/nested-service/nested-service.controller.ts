@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Request, UseGuards, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus, UseGuards, Req } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { NestedServiceService } from './nested-service.service';
 import { CreateNestedServiceDto } from './dto/create-nested-service.dto';
 import { UpdateNestedServiceDto } from './dto/update-nested-service.dto';
@@ -17,9 +18,10 @@ export class NestedServiceController {
     };
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get()
-  async findAll() {
-    const data = await this.nestedServiceService.findAll();
+  async findAll(@Req() req: any) {
+    const data = await this.nestedServiceService.findAll(req.user);
     return {
       statusCode: HttpStatus.OK,
       message: 'Nested Services retrieved successfully',

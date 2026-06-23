@@ -1,5 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
 import { Service } from '../../service/entities/service.entity';
+import { SubService } from 'src/sub-service/entities/sub-service.entity';
+
 
 @Entity('nested_services')
 export class NestedService {
@@ -22,7 +24,10 @@ export class NestedService {
   image: string;
 
   @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
-  price: number;
+  starting_price: number;
+
+  @OneToMany(() => SubService, subService => subService.nestedService, { cascade: true })
+  subServices: SubService[];
 
   @CreateDateColumn()
   createdAt: Date;

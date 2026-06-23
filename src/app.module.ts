@@ -13,9 +13,14 @@ import { ServiceModule } from './service/service.module';
 import { PackageModule } from './package/package.module';
 import { BookingModule } from './booking/booking.module';
 import { WithdrawModule } from './withdraw/withdraw.module';
+import { SubServiceModule } from './sub-service/sub-service.module';
 import { NestedServiceModule } from './nested-service/nested-service.module';
 import { ReviewModule } from './review/review.module';
 import { ProfileModule } from './profile/profile.module';
+import { DevisionModule } from './devision/devision.module';
+import { DistrictModule } from './district/district.module';
+import { AreaModule } from './area/area.module';
+import { ChatModule } from './chat/chat.module';
 
 @Module({
   imports: [
@@ -45,9 +50,14 @@ import { ProfileModule } from './profile/profile.module';
     PackageModule,
     BookingModule,
     WithdrawModule,
+    SubServiceModule,
     NestedServiceModule,
     ReviewModule,
     ProfileModule,
+    DevisionModule,
+    DistrictModule,
+    AreaModule,
+    ChatModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -18,8 +18,17 @@ export class ProfileService {
     if (createProfileDto.user_id) {
       profileData.user = { id: createProfileDto.user_id };
     }
-    if (createProfileDto.category_id) {
-      profileData.category = { id: createProfileDto.category_id };
+    if (createProfileDto.category_ids && createProfileDto.category_ids.length > 0) {
+      profileData.categories = createProfileDto.category_ids.map(id => ({ id }));
+    }
+    if (createProfileDto.devision_id) {
+      profileData.devision = { id: createProfileDto.devision_id };
+    }
+    if (createProfileDto.district_id) {
+      profileData.district = { id: createProfileDto.district_id };
+    }
+    if (createProfileDto.area_id) {
+      profileData.area = { id: createProfileDto.area_id };
     }
 
     const profile = this.profileRepository.create(profileData);
@@ -28,14 +37,14 @@ export class ProfileService {
 
   async findAll() {
     return await this.profileRepository.find({
-      relations: { user: true, category: true },
+      relations: { user: true, categories: true, devision: true, district: true, area: true },
     });
   }
 
   async findOne(id: number) {
     const profile = await this.profileRepository.findOne({
       where: { id },
-      relations: { user: true, category: true },
+      relations: { user: true, categories: true, devision: true, district: true, area: true },
     });
     if (!profile) {
       throw new NotFoundException(`Profile with ID ${id} not found`);
@@ -51,8 +60,19 @@ export class ProfileService {
     if (updateProfileDto.user_id) {
       profile.user = { id: updateProfileDto.user_id } as any;
     }
-    if (updateProfileDto.category_id !== undefined) {
-      profile.category = updateProfileDto.category_id ? { id: updateProfileDto.category_id } as any : null;
+    if (updateProfileDto.category_ids !== undefined) {
+      profile.categories = updateProfileDto.category_ids.length > 0 
+        ? updateProfileDto.category_ids.map(id => ({ id } as any)) 
+        : [];
+    }
+    if (updateProfileDto.devision_id !== undefined) {
+      profile.devision = updateProfileDto.devision_id ? { id: updateProfileDto.devision_id } as any : null;
+    }
+    if (updateProfileDto.district_id !== undefined) {
+      profile.district = updateProfileDto.district_id ? { id: updateProfileDto.district_id } as any : null;
+    }
+    if (updateProfileDto.area_id !== undefined) {
+      profile.area = updateProfileDto.area_id ? { id: updateProfileDto.area_id } as any : null;
     }
     
     return await this.profileRepository.save(profile);

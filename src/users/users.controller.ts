@@ -23,10 +23,10 @@ export class UsersController {
     };
   }
 
-  @Roles('Super Admin', 'Agent')
+  @Roles('Super Admin', 'Agent', 'Vendor')
   @Get()
-  async findAll() {
-    const data = await this.usersService.findAll();
+  async findAll(@Req() req: any) {
+    const data = await this.usersService.findAll(req.user);
     return {
       statusCode: HttpStatus.OK,
       message: 'Users retrieved successfully',
@@ -36,10 +36,30 @@ export class UsersController {
 
   @Get('me')
   async getProfile(@Req() req: any) {
-    const data = await this.usersService.findOne(req.user.userId);
+    const data = await this.usersService.findOne(req.user.userId || req.user.sub);
     return {
       statusCode: HttpStatus.OK,
       message: 'Profile retrieved successfully',
+      data,
+    };
+  }
+
+  @Get('me/saved-services')
+  async getSavedServices(@Req() req: any) {
+    const data = await this.usersService.getSavedServices(req.user.sub || req.user.userId);
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Saved services retrieved successfully',
+      data,
+    };
+  }
+
+  @Post('me/saved-services/:serviceId')
+  async toggleSavedService(@Req() req: any, @Param('serviceId') serviceId: string) {
+    const data = await this.usersService.toggleSavedService(req.user.sub || req.user.userId, +serviceId);
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Saved services updated successfully',
       data,
     };
   }

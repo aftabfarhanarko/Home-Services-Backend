@@ -21,4 +21,9 @@ export class CreatePackageDto {
   @IsArray()
   @IsNumber({}, { each: true })
   nested_service_ids?: number[];
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  features?: string[];
 }

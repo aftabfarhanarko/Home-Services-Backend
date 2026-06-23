@@ -21,11 +21,23 @@ export class Service {
   @Column({ type: 'text', nullable: true })
   description: string;
 
+  @Column({ type: 'text', nullable: true })
+  overview: string;
+
+  @Column({ type: 'text', nullable: true })
+  details: string;
+
+  @Column({ type: 'jsonb', nullable: true })
+  faq: { question: string; answer: string }[];
+
   @Column({ nullable: true })
   image: string;
 
   @Column({ nullable: true })
   banner: string;
+
+  @Column({ type: 'decimal', precision: 5, scale: 2, default: 0 })
+  agent_commission_percentage: number;
 
   @ManyToMany(() => User)
   @JoinTable({ name: 'service_employees' })

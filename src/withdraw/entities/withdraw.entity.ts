@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
+import { Booking } from '../../booking/entities/booking.entity';
 
 export enum WithdrawStatus {
   PENDING = 'pending',
@@ -15,6 +16,10 @@ export class Withdraw {
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'vendor_id' })
   vendor: User;
+
+  @ManyToOne(() => Booking, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'booking_id' })
+  booking: Booking;
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   amount: number;

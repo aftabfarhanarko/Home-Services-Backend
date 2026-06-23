@@ -1,6 +1,9 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn, ManyToOne } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn, ManyToMany, JoinTable, ManyToOne } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { Category } from '../../category/entities/category.entity';
+import { Devision } from '../../devision/entities/devision.entity';
+import { District } from '../../district/entities/district.entity';
+import { Area } from '../../area/entities/area.entity';
 
 export enum ProfileType {
   PERSONAL = 'personal',
@@ -32,6 +35,18 @@ export class Profile {
   @Column({ nullable: true })
   location: string;
 
+  @ManyToOne(() => Devision, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'devision_id' })
+  devision: Devision;
+
+  @ManyToOne(() => District, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'district_id' })
+  district: District;
+
+  @ManyToOne(() => Area, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'area_id' })
+  area: Area;
+
   @Column({ type: 'text', nullable: true })
   description: string;
 
@@ -45,9 +60,13 @@ export class Profile {
   @Column({ type: 'text', nullable: true })
   google_map_link: string;
 
-  @ManyToOne(() => Category, { nullable: true, onDelete: 'SET NULL' })
-  @JoinColumn({ name: 'category_id' })
-  category: Category;
+  @ManyToMany(() => Category, { nullable: true, onDelete: 'CASCADE' })
+  @JoinTable({
+    name: 'profile_categories',
+    joinColumn: { name: 'profile_id', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'category_id', referencedColumnName: 'id' }
+  })
+  categories: Category[];
 
   @CreateDateColumn()
   createdAt: Date;

@@ -1,15 +1,21 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { UpdateBookingDto } from './dto/update-booking.dto';
 import { Booking, BookingStatus } from './entities/booking.entity';
+import { SubService } from '../sub-service/entities/sub-service.entity';
+import { Package } from '../package/entities/package.entity';
 
 @Injectable()
 export class BookingService {
   constructor(
     @InjectRepository(Booking)
     private readonly bookingRepository: Repository<Booking>,
+    @InjectRepository(SubService)
+    private readonly subServiceRepository: Repository<SubService>,
+    @InjectRepository(Package)
+    private readonly packageRepository: Repository<Package>,
   ) {}
 
   async create(createBookingDto: CreateBookingDto, userId: number) {
@@ -18,14 +24,32 @@ export class BookingService {
       ...createBookingDto,
       user: { id: finalUserId },
       vendor: { id: createBookingDto.vendor_id },
+      service: createBookingDto.service_id ? { id: createBookingDto.service_id } : undefined,
     };
     delete bookingData.user_id;
-    if (createBookingDto.nested_service_id) {
-      bookingData.nestedService = { id: createBookingDto.nested_service_id };
+    delete bookingData.service_id;
+
+    let totalPrice = 0;
+
+    if (createBookingDto.sub_service_ids && createBookingDto.sub_service_ids.length > 0) {
+      const subServices = await this.subServiceRepository.find({
+        where: { id: In(createBookingDto.sub_service_ids) }
+      });
+      bookingData.subServices = subServices;
+      totalPrice += subServices.reduce((sum, ss) => sum + Number(ss.price || 0), 0);
     }
+    
     if (createBookingDto.package_id) {
-      bookingData.pkg = { id: createBookingDto.package_id };
+      const pkg = await this.packageRepository.findOne({
+        where: { id: createBookingDto.package_id }
+      });
+      if (pkg) {
+        bookingData.pkg = pkg;
+        totalPrice += Number(pkg.price || 0);
+      }
     }
+
+    bookingData.total_price = totalPrice;
     const booking = this.bookingRepository.create(bookingData);
     return await this.bookingRepository.save(booking);
   }
@@ -37,6 +61,11 @@ export class BookingService {
       whereCondition = { vendor: { id: user.sub } };
     } else if (user?.role === 'Employee') {
       whereCondition = { employees: { id: user.sub } };
+    } else if (user?.role === 'Agent') {
+      whereCondition = [
+        { agent: { id: user.sub } },
+        { user: { agent: { id: user.sub } } }
+      ];
     } else if (user?.role !== 'Super Admin') {
       // For normal users or clients
       whereCondition = { user: { id: user.sub } };
@@ -44,28 +73,28 @@ export class BookingService {
 
     return await this.bookingRepository.find({
       where: whereCondition,
-      relations: { user: true, vendor: true, employees: true, nestedService: true, pkg: true },
+      relations: { user: { agent: true }, vendor: true, employees: true, subServices: true, pkg: true, service: true, agent: true },
     });
   }
 
   async findByVendor(vendorId: number) {
     return await this.bookingRepository.find({
       where: { vendor: { id: vendorId } },
-      relations: { user: true, employees: true, nestedService: true, pkg: true },
+      relations: { user: true, employees: true, subServices: true, pkg: true, service: true },
     });
   }
 
   async findByUser(userId: number) {
     return await this.bookingRepository.find({
       where: { user: { id: userId } },
-      relations: { vendor: true, employees: true, nestedService: true, pkg: true },
+      relations: { vendor: true, employees: true, subServices: true, pkg: true, service: true },
     });
   }
 
   async findOne(id: number, user?: any) {
     const booking = await this.bookingRepository.findOne({
       where: { id },
-      relations: { user: true, vendor: true, employees: true, nestedService: true, pkg: true },
+      relations: { user: { agent: true }, vendor: true, employees: true, subServices: true, pkg: true, service: true, agent: true },
     });
     if (!booking) {
       throw new NotFoundException(`Booking with ID ${id} not found`);
@@ -76,7 +105,9 @@ export class BookingService {
       const isVendor = booking.vendor?.id === user.sub;
       const isEmployee = booking.employees?.some((emp: any) => emp.id === user.sub);
 
-      if (!isOwner && !isVendor && !isEmployee) {
+      const isAgent = booking.agent?.id === user.sub || booking.user?.agent?.id === user.sub;
+
+      if (!isOwner && !isVendor && !isEmployee && !isAgent) {
         throw new NotFoundException(`Booking with ID ${id} not found`);
       }
     }

@@ -1,7 +1,9 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, ManyToMany, JoinTable } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { NestedService } from '../../nested-service/entities/nested-service.entity';
+import { SubService } from '../../sub-service/entities/sub-service.entity';
 import { Package } from '../../package/entities/package.entity';
+import { Service } from '../../service/entities/service.entity';
 
 export enum BookingStatus {
   PENDING = 'pending',
@@ -24,20 +26,34 @@ export class Booking {
   @JoinColumn({ name: 'vendor_id' })
   vendor: User;
 
+  @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'agent_id' })
+  agent: User;
+
   @ManyToMany(() => User, { nullable: true, onDelete: 'CASCADE' })
   @JoinTable({ name: 'booking_employees' })
   employees: User[];
 
-  @ManyToOne(() => NestedService, { nullable: true, onDelete: 'SET NULL' })
-  @JoinColumn({ name: 'nested_service_id' })
-  nestedService: NestedService;
+  @ManyToMany(() => SubService, { nullable: true, onDelete: 'CASCADE' })
+  @JoinTable({ name: 'booking_sub_services' })
+  subServices: SubService[];
 
   @ManyToOne(() => Package, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'package_id' })
   pkg: Package;
 
+  @ManyToOne(() => Service, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'service_id' })
+  service: Service;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+  total_price: number;
+
   @Column({ type: 'date' })
   date: string;
+
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  time: string;
 
   @Column()
   location: string;

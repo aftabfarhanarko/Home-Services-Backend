@@ -26,7 +26,14 @@ export class PackageService {
     return await this.packageRepository.save(pkg);
   }
 
-  async findAll() {
+  async findAll(user?: any) {
+    if (user?.role === 'Vendor') {
+      return await this.packageRepository.find({
+        where: { service: { vendor: { id: user.sub } } },
+        relations: { service: { vendor: true }, items: { nestedService: true } },
+      });
+    }
+
     return await this.packageRepository.find({
       relations: { service: true, items: { nestedService: true } },
     });

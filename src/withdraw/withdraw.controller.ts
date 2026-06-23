@@ -10,7 +10,7 @@ export class WithdrawController {
 
   @Post('request')
   async create(@Body() createWithdrawDto: CreateWithdrawDto) {
-    const vendorId = 1; // placeholder: use @Request() req, req.user.id
+    const vendorId = createWithdrawDto.vendorId || 1; // Fallback to 1 if not passed
     const data = await this.withdrawService.create(createWithdrawDto, vendorId);
     return {
       statusCode: HttpStatus.CREATED,

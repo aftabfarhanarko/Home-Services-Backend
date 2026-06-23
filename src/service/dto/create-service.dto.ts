@@ -18,6 +18,18 @@ export class CreateServiceDto {
   description?: string;
 
   @IsOptional()
+  @IsString()
+  overview?: string;
+
+  @IsOptional()
+  @IsString()
+  details?: string;
+
+  @IsOptional()
+  @IsArray()
+  faq?: { question: string; answer: string }[];
+
+  @IsOptional()
   @IsUrl()
   image?: string;
 
@@ -37,4 +49,8 @@ export class CreateServiceDto {
   @IsOptional()
   @IsNumber()
   vendor_id?: number;
+
+  @IsOptional()
+  @IsNumber()
+  agent_commission_percentage?: number;
 }

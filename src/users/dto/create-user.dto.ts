@@ -34,4 +34,12 @@ export class CreateUserDto {
   @IsOptional()
   @IsString()
   vendor_unique_id?: string | null;
+
+  @IsOptional()
+  @IsNumber()
+  commission_percentage?: number;
+
+  @IsOptional()
+  @IsNumber()
+  agent_id?: number;
 }

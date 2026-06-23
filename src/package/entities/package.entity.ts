@@ -21,6 +21,9 @@ export class Package {
   @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
   price: number;
 
+  @Column("simple-array", { nullable: true })
+  features: string[];
+
   @OneToMany(() => PackageItem, (item: PackageItem) => item.package, { cascade: true })
   items: PackageItem[];
 

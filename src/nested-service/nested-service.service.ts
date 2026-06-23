@@ -10,62 +10,62 @@ export class NestedServiceService {
   constructor(
     @InjectRepository(NestedService)
     private readonly nestedServiceRepository: Repository<NestedService>,
-  ) {}
+  ) { }
 
   async create(createNestedServiceDto: CreateNestedServiceDto) {
     const nestedService = this.nestedServiceRepository.create({
       ...createNestedServiceDto,
       service: { id: createNestedServiceDto.service_id },
+      subServices: createNestedServiceDto.sub_services ? createNestedServiceDto.sub_services.map(sub => ({
+        name: sub.name,
+        price: sub.price,
+      })) : [],
     });
     return await this.nestedServiceRepository.save(nestedService);
   }
 
-  async findAll() {
-    try {
+  async findAll(user?: any) {
+    if (user?.role === 'Vendor') {
       return await this.nestedServiceRepository.find({
-        relations: { service: true },
+        where: { service: { vendor: { id: user.sub } } },
+        relations: { service: { vendor: true }, subServices: true },
       });
-    } catch (error) {
-      console.error("Database query failed for findAll nested-services:", error);
-      return [];
     }
+
+    return await this.nestedServiceRepository.find({
+      relations: { service: true, subServices: true },
+    });
   }
 
   async findByServiceId(serviceId: number) {
-    try {
-      return await this.nestedServiceRepository.find({
-        where: { service: { id: serviceId } },
-        relations: { service: true },
-      });
-    } catch (error) {
-      console.error(`Database query failed for findByServiceId(${serviceId}) nested-services:`, error);
-      return [];
-    }
+    return await this.nestedServiceRepository.find({
+      where: { service: { id: serviceId } },
+      relations: { service: true, subServices: true },
+    });
   }
 
   async findOne(id: number) {
-    try {
-      const nestedService = await this.nestedServiceRepository.findOne({
-        where: { id },
-        relations: { service: true },
-      });
-      if (!nestedService) {
-        throw new NotFoundException(`Nested Service with ID ${id} not found`);
-      }
-      return nestedService;
-    } catch (error) {
-      if (error instanceof NotFoundException) throw error;
-      console.error(`Database query failed for findOne(${id}) nested-services:`, error);
-      throw new NotFoundException(`Nested Service with ID ${id} not found due to database error`);
+    const nestedService = await this.nestedServiceRepository.findOne({
+      where: { id },
+      relations: { service: true, subServices: true },
+    });
+    if (!nestedService) {
+      throw new NotFoundException(`Nested Service with ID ${id} not found`);
     }
   }
 
   async update(id: number, updateNestedServiceDto: UpdateNestedServiceDto) {
     const nestedService = await this.findOne(id);
     if (updateNestedServiceDto.service_id) {
-        nestedService.service = { id: updateNestedServiceDto.service_id } as any;
+      nestedService.service = { id: updateNestedServiceDto.service_id } as any;
     }
     Object.assign(nestedService, updateNestedServiceDto);
+    if (updateNestedServiceDto.sub_services) {
+      nestedService.subServices = updateNestedServiceDto.sub_services.map(sub => ({
+        name: sub.name,
+        price: sub.price,
+      })) as any;
+    }
     return await this.nestedServiceRepository.save(nestedService);
   }
 

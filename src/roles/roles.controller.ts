@@ -34,7 +34,7 @@ export class RolesController {
     };
   }
 
-  @Roles('Super Admin', 'Agent')
+  @Roles('Super Admin', 'Agent', 'Vendor')
   @Get()
   async findAll() {
     const data = await this.rolesService.findAll();
@@ -45,7 +45,7 @@ export class RolesController {
     };
   }
 
-  @Roles('Super Admin', 'Agent')
+  @Roles('Super Admin', 'Agent', 'Vendor')
   @Get(':id')
   async findOne(@Param('id') id: string) {
     const data = await this.rolesService.findOne(+id);

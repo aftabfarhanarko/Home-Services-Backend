@@ -21,12 +21,23 @@ export class ServiceController {
   @UseGuards(JwtAuthGuard)
   @Get()
   async findAll(@Req() req: any) {
-    const data = await this.serviceService.findAll(req.user);
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Services retrieved successfully',
-      data,
-    };
+    try {
+      const data = await this.serviceService.findAll(req.user);
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'Services retrieved successfully',
+        data,
+      };
+    } catch (error: any) {
+      return {
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        message: 'Error fetching services',
+        error: error.message,
+        stack: error.stack,
+        userRole: req.user?.role,
+        userSub: req.user?.sub
+      };
+    }
   }
 
   @Get(':id')
