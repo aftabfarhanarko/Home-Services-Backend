@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, HttpStatus, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, HttpStatus, Req, Query } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -25,8 +25,8 @@ export class UsersController {
 
   @Roles('Super Admin', 'Agent', 'Vendor')
   @Get()
-  async findAll(@Req() req: any) {
-    const data = await this.usersService.findAll(req.user);
+  async findAll(@Req() req: any, @Query('role') role?: string) {
+    const data = await this.usersService.findAll(req.user, role);
     return {
       statusCode: HttpStatus.OK,
       message: 'Users retrieved successfully',

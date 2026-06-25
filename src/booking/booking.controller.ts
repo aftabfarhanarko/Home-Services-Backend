@@ -13,7 +13,7 @@ export class BookingController {
   @Post()
   async create(@Req() req: any, @Body() createBookingDto: CreateBookingDto) {
     const userId = req.user.sub;
-    const data = await this.bookingService.create(createBookingDto, userId);
+    const data = await this.bookingService.create(createBookingDto, userId, req.user);
     return {
       statusCode: HttpStatus.CREATED,
       message: 'Booking created successfully',

@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus, UseGuards, Req } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ReviewService } from './review.service';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { UpdateReviewDto } from './dto/update-review.dto';
@@ -7,15 +8,24 @@ import { UpdateReviewDto } from './dto/update-review.dto';
 export class ReviewController {
   constructor(private readonly reviewService: ReviewService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Post()
-  async create(@Body() createReviewDto: CreateReviewDto) {
-    const userId = 1; // placeholder: use @Request() req, req.user.id
-    const data = await this.reviewService.create(createReviewDto, userId);
-    return {
-      statusCode: HttpStatus.CREATED,
-      message: 'Review created successfully',
-      data,
-    };
+  async create(@Req() req: any, @Body() createReviewDto: CreateReviewDto) {
+    try {
+      const userId = req.user.sub;
+      const data = await this.reviewService.create(createReviewDto, userId);
+      return {
+        statusCode: HttpStatus.CREATED,
+        message: 'Review created successfully',
+        data,
+      };
+    } catch (error: any) {
+      return {
+        statusCode: 500,
+        message: error.message || 'Internal server error',
+        error: error.stack
+      };
+    }
   }
 
   @Get()

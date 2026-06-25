@@ -18,7 +18,7 @@ export class BookingService {
     private readonly packageRepository: Repository<Package>,
   ) {}
 
-  async create(createBookingDto: CreateBookingDto, userId: number) {
+  async create(createBookingDto: CreateBookingDto, userId: number, userReq?: any) {
     const finalUserId = createBookingDto.user_id || userId;
     const bookingData: any = {
       ...createBookingDto,
@@ -28,6 +28,10 @@ export class BookingService {
     };
     delete bookingData.user_id;
     delete bookingData.service_id;
+
+    if (userReq?.role?.toLowerCase() === 'agent') {
+      bookingData.agent = { id: userId };
+    }
 
     let totalPrice = 0;
 

@@ -21,13 +21,16 @@ export class ReviewService {
     if (createReviewDto.nested_service_id) {
       reviewData.nestedService = { id: createReviewDto.nested_service_id };
     }
+    if (createReviewDto.employee_id) {
+      reviewData.employee = { id: createReviewDto.employee_id };
+    }
     const review = this.reviewRepository.create(reviewData);
     return await this.reviewRepository.save(review);
   }
 
   async findAll() {
     return await this.reviewRepository.find({
-      relations: { user: true, service: true, nestedService: true },
+      relations: { user: true, service: true, nestedService: true, employee: true },
     });
   }
 
@@ -48,7 +51,7 @@ export class ReviewService {
   async findOne(id: number) {
     const review = await this.reviewRepository.findOne({
       where: { id },
-      relations: { user: true, service: true, nestedService: true },
+      relations: { user: true, service: true, nestedService: true, employee: true },
     });
     if (!review) {
       throw new NotFoundException(`Review with ID ${id} not found`);

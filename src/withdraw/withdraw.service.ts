@@ -21,15 +21,32 @@ export class WithdrawService {
   async create(createWithdrawDto: CreateWithdrawDto, vendorId: number) {
     const booking = await this.bookingRepository.findOne({
       where: { id: createWithdrawDto.bookingId },
-      relations: { vendor: true },
+      relations: { vendor: true, agent: true, service: true },
     });
 
     if (!booking) {
       throw new NotFoundException(`Booking with ID ${createWithdrawDto.bookingId} not found`);
     }
 
-    if (booking.vendor.id !== vendorId) {
-      throw new Error(`Booking ${createWithdrawDto.bookingId} does not belong to vendor ${vendorId}`);
+    const requester = await this.userRepository.findOne({ 
+      where: { id: vendorId },
+      relations: { role: true }
+    });
+    
+    if (!requester) {
+      throw new NotFoundException(`User with ID ${vendorId} not found`);
+    }
+    
+    const roleName = requester?.role?.name?.toLowerCase() || '';
+    
+    if (roleName === 'agent') {
+      if (booking.agent?.id !== vendorId) {
+        throw new Error(`Booking ${createWithdrawDto.bookingId} does not belong to agent ${vendorId}`);
+      }
+    } else {
+      if (booking.vendor?.id !== vendorId) {
+        throw new Error(`Booking ${createWithdrawDto.bookingId} does not belong to vendor ${vendorId}`);
+      }
     }
 
     // Check if a withdraw already exists for this booking
@@ -40,24 +57,16 @@ export class WithdrawService {
       throw new Error(`A withdraw request already exists for booking ${createWithdrawDto.bookingId}`);
     }
 
-    const vendor = await this.userRepository.findOne({ 
-      where: { id: vendorId },
-      relations: { role: true }
-    });
-    if (!vendor) {
-      throw new NotFoundException(`Vendor with ID ${vendorId} not found`);
-    }
-
-    let commissionPct = vendor?.commission_percentage || 0;
-      
-    // If user is an Agent, use the specific service's agent commission percentage
-    if (vendor?.role?.name?.toLowerCase() === 'agent' && booking.service) {
-      commissionPct = booking.service.agent_commission_percentage || 0;
-    }
+    let amount = 0;
     
-    // The commissionPct is the platform's cut. The vendor gets the rest (100 - commissionPct)%
-    const vendorSharePct = 100 - Number(commissionPct);
-    const amount = Number(booking.total_price) * (vendorSharePct / 100);
+    if (roleName === 'agent') {
+      const agentCommission = Number(booking.service?.agent_commission_percentage || 0);
+      amount = Number(booking.total_price) * (agentCommission / 100);
+    } else {
+      let commissionPct = requester?.commission_percentage || 0;
+      const vendorSharePct = 100 - Number(commissionPct);
+      amount = Number(booking.total_price) * (vendorSharePct / 100);
+    }
 
     if (!amount || amount <= 0) {
       throw new Error(`Invalid withdrawal amount (Calculated amount: ${amount}). Ensure the booking has a total price greater than 0.`);

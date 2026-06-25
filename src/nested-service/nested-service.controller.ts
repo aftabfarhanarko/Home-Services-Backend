@@ -6,7 +6,7 @@ import { UpdateNestedServiceDto } from './dto/update-nested-service.dto';
 
 @Controller('nested-services')
 export class NestedServiceController {
-  constructor(private readonly nestedServiceService: NestedServiceService) {}
+  constructor(private readonly nestedServiceService: NestedServiceService) { }
 
   @Post()
   async create(@Body() createNestedServiceDto: CreateNestedServiceDto) {
@@ -18,7 +18,7 @@ export class NestedServiceController {
     };
   }
 
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   @Get()
   async findAll(@Req() req: any) {
     const data = await this.nestedServiceService.findAll(req.user);

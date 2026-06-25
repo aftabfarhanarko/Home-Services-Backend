@@ -9,6 +9,10 @@ export class CreateReviewDto {
   @IsNumber()
   nested_service_id?: number;
 
+  @IsOptional()
+  @IsNumber()
+  employee_id?: number;
+
   @IsNotEmpty()
   @IsNumber()
   @Min(1)

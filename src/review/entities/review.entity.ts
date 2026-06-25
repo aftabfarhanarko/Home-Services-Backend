@@ -12,6 +12,10 @@ export class Review {
   @JoinColumn({ name: 'user_id' })
   user: User;
 
+  @ManyToOne(() => User, { nullable: true, onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'employee_id' })
+  employee: User;
+
   @ManyToOne(() => Service, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'service_id' })
   service: Service;

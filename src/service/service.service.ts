@@ -32,7 +32,7 @@ export class ServiceService {
 
   async findAll(user: any) {
     const roleName = user?.role?.toLowerCase() || '';
-    if (roleName === 'super admin' || roleName === 'superadmin' || roleName === 'admin') {
+    if (roleName === 'super admin' || roleName === 'superadmin' || roleName === 'admin' || roleName === 'agent') {
       return await this.serviceRepository.find({
         relations: { nestedServices: { subServices: true }, packages: true, employees: true, vendor: true, category: true },
       });

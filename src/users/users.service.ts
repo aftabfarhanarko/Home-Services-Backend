@@ -34,31 +34,31 @@ export class UsersService {
     });
   }
 
-  async findAll(user?: any): Promise<User[]> {
-    if (user?.role === 'Vendor') {
+  async findAll(user?: any, roleFilter?: string): Promise<User[]> {
+    const whereRole: any = roleFilter ? { role: { name: roleFilter } } : {};
+
+    if (user?.role?.toLowerCase() === 'vendor') {
+      const vendorWhere: any = [
+        { id: user.sub, ...whereRole },
+        { vendor: { id: user.sub }, ...whereRole }
+      ];
       return this.userRepository.find({
-        where: [
-          { id: user.sub },
-          { vendor: { id: user.sub } }
-        ],
+        where: vendorWhere,
         relations: { role: true, profile: { categories: true }, vendor: true, agent: true }
       });
-    } else if (user?.role === 'Agent') {
-      return this.userRepository.find({
-        where: [
-          { id: user.sub },
-          { agent: { id: user.sub } }
-        ],
-        relations: { role: true, profile: { categories: true }, vendor: true, agent: true }
+    } else if (user?.role?.toLowerCase() === 'agent' || user?.role?.toLowerCase() === 'super admin' || user?.role?.toLowerCase() === 'superadmin') {
+      const adminWhere: any = Object.keys(whereRole).length > 0 ? whereRole : undefined;
+      return this.userRepository.find({ 
+        where: adminWhere,
+        relations: { role: true, profile: { categories: true }, vendor: true, agent: true } 
       });
-    } else if (user?.role === 'Super Admin' || user?.role === 'superadmin') {
-      return this.userRepository.find({ relations: { role: true, profile: { categories: true }, vendor: true, agent: true } });
     }
     
     // Fallback for regular clients/users: only return their own profile
     if (user && user.sub) {
+      const fallbackWhere: any = { id: user.sub, ...whereRole };
       return this.userRepository.find({
-        where: { id: user.sub },
+        where: fallbackWhere,
         relations: { role: true, profile: { categories: true }, vendor: true, agent: true }
       });
     }

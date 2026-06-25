@@ -6,7 +6,7 @@ import { UpdatePackageDto } from './dto/update-package.dto';
 
 @Controller('packages')
 export class PackageController {
-  constructor(private readonly packageService: PackageService) {}
+  constructor(private readonly packageService: PackageService) { }
 
   @Post()
   async create(@Body() createPackageDto: CreatePackageDto) {
@@ -18,7 +18,7 @@ export class PackageController {
     };
   }
 
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   @Get()
   async findAll(@Req() req: any) {
     const data = await this.packageService.findAll(req.user);
