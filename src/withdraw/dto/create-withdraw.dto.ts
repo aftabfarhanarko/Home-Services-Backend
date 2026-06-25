@@ -13,4 +13,8 @@ export class CreateWithdrawDto {
   @IsOptional()
   @IsNumber()
   vendorId?: number;
+
+  @IsOptional()
+  @IsNumber()
+  gatewayId?: number;
 }

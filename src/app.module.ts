@@ -21,6 +21,7 @@ import { DevisionModule } from './devision/devision.module';
 import { DistrictModule } from './district/district.module';
 import { AreaModule } from './area/area.module';
 import { ChatModule } from './chat/chat.module';
+import { GetwayModule } from './getway/getway.module';
 
 @Module({
   imports: [
@@ -58,6 +59,7 @@ import { ChatModule } from './chat/chat.module';
     DistrictModule,
     AreaModule,
     ChatModule,
+    GetwayModule,
   ],
   controllers: [AppController],
   providers: [AppService],

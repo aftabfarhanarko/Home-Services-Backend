@@ -50,8 +50,12 @@ export class WithdrawController {
   }
 
   @Patch(':id/status')
-  async updateStatus(@Param('id') id: string, @Body('status') status: WithdrawStatus) {
-    const data = await this.withdrawService.updateStatus(+id, status);
+  async updateStatus(
+    @Param('id') id: string, 
+    @Body('status') status: WithdrawStatus,
+    @Body('admin_note') admin_note?: string,
+  ) {
+    const data = await this.withdrawService.updateStatus(+id, status, admin_note);
     return {
       statusCode: HttpStatus.OK,
       message: 'Withdraw status updated successfully',

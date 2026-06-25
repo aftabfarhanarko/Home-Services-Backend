@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
+import { Getway } from "../../getway/entities/getway.entity";
 import { Booking } from '../../booking/entities/booking.entity';
 
 export enum WithdrawStatus {
@@ -21,8 +22,15 @@ export class Withdraw {
   @JoinColumn({ name: 'booking_id' })
   booking: Booking;
 
+  @ManyToOne(() => Getway, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'getway_id' })
+  getway: Getway;
+
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   amount: number;
+
+  @Column({ type: 'text', nullable: true })
+  admin_note: string;
 
   @Column({
     type: 'enum',

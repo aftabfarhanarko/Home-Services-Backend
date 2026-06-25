@@ -31,13 +31,14 @@ export class ServiceService {
   }
 
   async findAll(user: any) {
-    if (user?.role === 'Super Admin') {
+    const roleName = user?.role?.toLowerCase() || '';
+    if (roleName === 'super admin' || roleName === 'superadmin' || roleName === 'admin') {
       return await this.serviceRepository.find({
         relations: { nestedServices: { subServices: true }, packages: true, employees: true, vendor: true, category: true },
       });
     }
 
-    if (user?.role === 'Vendor') {
+    if (roleName === 'vendor') {
       return await this.serviceRepository.find({
         where: { vendor: { id: user.sub } },
         relations: { nestedServices: { subServices: true }, packages: true, employees: true, vendor: true, category: true },

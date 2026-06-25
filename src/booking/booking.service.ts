@@ -57,16 +57,18 @@ export class BookingService {
   async findAll(user: any) {
     let whereCondition = {};
 
-    if (user?.role === 'Vendor') {
+    const roleName = user?.role?.toLowerCase() || '';
+
+    if (roleName === 'vendor') {
       whereCondition = { vendor: { id: user.sub } };
-    } else if (user?.role === 'Employee') {
+    } else if (roleName === 'employee') {
       whereCondition = { employees: { id: user.sub } };
-    } else if (user?.role === 'Agent') {
+    } else if (roleName === 'agent') {
       whereCondition = [
         { agent: { id: user.sub } },
         { user: { agent: { id: user.sub } } }
       ];
-    } else if (user?.role !== 'Super Admin') {
+    } else if (roleName !== 'super admin' && roleName !== 'superadmin' && roleName !== 'admin') {
       // For normal users or clients
       whereCondition = { user: { id: user.sub } };
     }
@@ -100,7 +102,8 @@ export class BookingService {
       throw new NotFoundException(`Booking with ID ${id} not found`);
     }
 
-    if (user && user.role !== 'Super Admin') {
+    const roleName = user?.role?.toLowerCase() || '';
+    if (user && roleName !== 'super admin' && roleName !== 'superadmin' && roleName !== 'admin') {
       const isOwner = booking.user?.id === user.sub;
       const isVendor = booking.vendor?.id === user.sub;
       const isEmployee = booking.employees?.some((emp: any) => emp.id === user.sub);
