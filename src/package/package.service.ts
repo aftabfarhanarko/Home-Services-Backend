@@ -39,6 +39,26 @@ export class PackageService {
     });
   }
 
+  async findAllPublic() {
+    const packages = await this.packageRepository.find({
+      relations: { service: true, items: { nestedService: true } },
+    });
+
+    const grouped = packages.reduce((acc, pkg) => {
+      const serviceId = pkg.service?.id || 'unassigned';
+      if (!acc[serviceId]) {
+        acc[serviceId] = {
+          service: pkg.service || null,
+          packages: [],
+        };
+      }
+      acc[serviceId].packages.push(pkg);
+      return acc;
+    }, {} as any);
+
+    return Object.values(grouped);
+  }
+
   async findByServiceId(serviceId: number) {
     return await this.packageRepository.find({
       where: { service: { id: serviceId } },

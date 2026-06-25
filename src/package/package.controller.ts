@@ -29,6 +29,16 @@ export class PackageController {
     };
   }
 
+  @Get('public')
+  async findAllPublic() {
+    const data = await this.packageService.findAllPublic();
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Service-wise packages retrieved successfully',
+      data,
+    };
+  }
+
   @Get('service/:serviceId')
   findByServiceId(@Param('serviceId') serviceId: string) {
     return this.packageService.findByServiceId(+serviceId);

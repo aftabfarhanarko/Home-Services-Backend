@@ -31,23 +31,29 @@ export class ServiceService {
   }
 
   async findAll(user: any) {
-    const roleName = user?.role?.toLowerCase() || '';
-    if (roleName === 'super admin' || roleName === 'superadmin' || roleName === 'admin' || roleName === 'agent') {
+    if (!user) {
       return await this.serviceRepository.find({
-        relations: { nestedServices: { subServices: true }, packages: true, employees: true, vendor: true, category: true },
+        relations: { nestedServices: { subServices: true }, packages: true, employees: true, vendor: true, category: true, reviews: true, bookings: true },
+      });
+    }
+
+    const roleName = user?.role?.toLowerCase() || '';
+    if (roleName === 'super admin' || roleName === 'superadmin' || roleName === 'admin' || roleName === 'agent' || roleName === 'client') {
+      return await this.serviceRepository.find({
+        relations: { nestedServices: { subServices: true }, packages: true, employees: true, vendor: true, category: true, reviews: true, bookings: true },
       });
     }
 
     if (roleName === 'vendor') {
       return await this.serviceRepository.find({
         where: { vendor: { id: user.sub } },
-        relations: { nestedServices: { subServices: true }, packages: true, employees: true, vendor: true, category: true },
+        relations: { nestedServices: { subServices: true }, packages: true, employees: true, vendor: true, category: true, reviews: true, bookings: true },
       });
     }
 
     return await this.serviceRepository.find({
       where: { employees: { id: user.sub } },
-      relations: { nestedServices: { subServices: true }, packages: true, employees: true, vendor: true, category: true },
+      relations: { nestedServices: { subServices: true }, packages: true, employees: true, vendor: true, category: true, reviews: true, bookings: true },
     });
   }
 

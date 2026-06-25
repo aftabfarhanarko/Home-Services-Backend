@@ -3,6 +3,8 @@ import { Category } from '../../category/entities/category.entity';
 import { NestedService } from '../../nested-service/entities/nested-service.entity';
 import { Package } from '../../package/entities/package.entity';
 import { User } from '../../users/entities/user.entity';
+import { Booking } from '../../booking/entities/booking.entity';
+import { Review } from '../../review/entities/review.entity';
 
 @Entity('services')
 export class Service {
@@ -56,6 +58,12 @@ export class Service {
 
   @OneToMany(() => Package, pkg => pkg.service)
   packages: Package[];
+
+  @OneToMany(() => Booking, booking => booking.service)
+  bookings: Booking[];
+
+  @OneToMany(() => Review, review => review.service)
+  reviews: Review[];
 
   @CreateDateColumn()
   createdAt: Date;

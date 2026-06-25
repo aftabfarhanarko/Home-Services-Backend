@@ -18,6 +18,20 @@ export class ServiceController {
     };
   }
 
+  @Get('public')
+  async findAllPublic() {
+    try {
+      const data = await this.serviceService.findAll(null);
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'Public services retrieved successfully',
+        data,
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
   @UseGuards(JwtAuthGuard)
   @Get()
   async findAll(@Req() req: any) {
