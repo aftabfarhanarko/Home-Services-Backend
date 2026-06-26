@@ -9,7 +9,7 @@ async function bootstrap() {
 
   // Enable CORS
   app.enableCors({
-    origin: ['http://localhost:3000', 'https://rajseba-phi.vercel.app'],
+    origin: ['http://localhost:3000', 'https://rajseba-phi.vercel.app','https://rajsheba.jevxo.com'],
     credentials: true,
   });
 
