@@ -1,8 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus, UseGuards, Req, Query } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { Public } from '../auth/decorators/public.decorator';
 import { ServiceService } from './service.service';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
+import { SearchServiceDto } from './dto/search-service.dto';
 
 @Controller('services')
 export class ServiceController {
@@ -18,6 +20,7 @@ export class ServiceController {
     };
   }
 
+  @Public()
   @Get('public')
   async findAllPublic() {
     try {
@@ -30,6 +33,17 @@ export class ServiceController {
     } catch (error) {
       throw error;
     }
+  }
+
+  @Public()
+  @Get('search')
+  async search(@Query() query: SearchServiceDto) {
+    const data = await this.serviceService.search(query);
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Services search completed successfully',
+      data,
+    };
   }
 
   @UseGuards(JwtAuthGuard)

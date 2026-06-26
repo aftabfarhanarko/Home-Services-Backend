@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
+import { SearchServiceDto } from './dto/search-service.dto';
 import { Service } from './entities/service.entity';
 
 @Injectable()
@@ -55,6 +56,40 @@ export class ServiceService {
       where: { employees: { id: user.sub } },
       relations: { nestedServices: { subServices: true }, packages: true, employees: true, vendor: true, category: true, reviews: true, bookings: true },
     });
+  }
+
+  async search(params: SearchServiceDto) {
+    const qb = this.serviceRepository
+      .createQueryBuilder('service')
+      .leftJoinAndSelect('service.category', 'category')
+      .leftJoinAndSelect('service.vendor', 'vendor')
+      .leftJoinAndSelect('vendor.profile', 'profile')
+      .leftJoinAndSelect('profile.devision', 'devision')
+      .leftJoinAndSelect('service.nestedServices', 'nestedServices')
+      .leftJoinAndSelect('nestedServices.subServices', 'subServices')
+      .leftJoinAndSelect('service.packages', 'packages')
+      .leftJoinAndSelect('service.employees', 'employees')
+      .leftJoinAndSelect('service.reviews', 'reviews')
+      .leftJoinAndSelect('service.bookings', 'bookings')
+      .where('service.deletedAt IS NULL');
+
+    if (params.category_id) {
+      qb.andWhere('category.id = :categoryId', { categoryId: params.category_id });
+    }
+
+    if (params.devision_id) {
+      qb.andWhere('devision.id = :devisionId', { devisionId: params.devision_id });
+    }
+
+    if (params.q?.trim()) {
+      const term = `%${params.q.trim().toLowerCase()}%`;
+      qb.andWhere(
+        '(LOWER(service.name) LIKE :term OR LOWER(service.subtitle) LIKE :term OR LOWER(service.description) LIKE :term)',
+        { term },
+      );
+    }
+
+    return qb.orderBy('service.createdAt', 'DESC').getMany();
   }
 
   async findOne(id: number) {

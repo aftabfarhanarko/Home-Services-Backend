@@ -40,7 +40,7 @@ export class BookingService {
     delete bookingData.user_id;
     delete bookingData.service_id;
 
-    if (userReq?.role?.toLowerCase() === 'agent') {
+    if (userReq?.role?.toLowerCase().replace(/\s+/g, '') === 'agent') {
       bookingData.agent = { id: userId };
     }
 
@@ -143,6 +143,42 @@ export class BookingService {
     );
   }
 
+  private buildAgentStatusSmsMessage(booking: Booking, newStatus: BookingStatus) {
+    const clientName = booking.user?.name || 'Client';
+    const clientPhone = booking.user?.phone || 'N/A';
+    const serviceLabel =
+      booking.service?.name ||
+      booking.pkg?.name ||
+      booking.subServices?.map((s) => s.name).join(', ') ||
+      'Service';
+    const schedule = booking.time ? `${booking.date} ${booking.time}` : booking.date;
+    const statusLabel = this.getStatusLabel(newStatus);
+
+    return (
+      `Rajsheba Agent: Booking #${booking.id} for ${clientName} (${clientPhone}) ` +
+      `is now "${statusLabel}". Service: ${serviceLabel}. ` +
+      `Scheduled: ${schedule}. Location: ${booking.location}.`
+    );
+  }
+
+  private async notifyAgentOnStatusChange(
+    bookingId: number,
+    newStatus: BookingStatus,
+    previousStatus?: BookingStatus,
+  ) {
+    if (previousStatus && previousStatus === newStatus) return;
+
+    const booking = await this.bookingRepository.findOne({
+      where: { id: bookingId },
+      relations: { user: true, agent: true, service: true, pkg: true, subServices: true },
+    });
+
+    if (!booking?.agent?.phone) return;
+
+    const message = this.buildAgentStatusSmsMessage(booking, newStatus);
+    await this.smsService.sendMessage(booking.agent.phone, message);
+  }
+
   private async notifyClientOnStatusChange(
     bookingId: number,
     newStatus: BookingStatus,
@@ -182,7 +218,7 @@ export class BookingService {
   private async notifyVendorAndSuperAdminOnCompletion(bookingId: number) {
     const booking = await this.bookingRepository.findOne({
       where: { id: bookingId },
-      relations: { user: true, vendor: true, service: true, pkg: true, subServices: true },
+      relations: { user: true, vendor: true, agent: true, service: true, pkg: true, subServices: true },
     });
 
     if (!booking) return;
@@ -220,6 +256,14 @@ export class BookingService {
       (error) =>
         this.logger.error(
           `Failed to send status SMS to client for booking #${bookingId}`,
+          error?.message || error,
+        ),
+    );
+
+    this.notifyAgentOnStatusChange(bookingId, newStatus, previousStatus).catch(
+      (error) =>
+        this.logger.error(
+          `Failed to send status SMS to agent for booking #${bookingId}`,
           error?.message || error,
         ),
     );
