@@ -46,6 +46,21 @@ export class Booking {
   @JoinColumn({ name: 'service_id' })
   service: Service;
 
+  @Column({ type: 'int', default: 1 })
+  quantity: number;
+
+  @Column({ type: 'jsonb', nullable: true })
+  sub_service_items: { sub_service_id: number; quantity: number }[];
+
+  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+  subtotal: number;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+  discount_amount: number;
+
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  coupon_code: string;
+
   @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
   total_price: number;
 

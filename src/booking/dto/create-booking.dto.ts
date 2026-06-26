@@ -1,4 +1,14 @@
-import { IsString, IsOptional, IsNotEmpty, IsNumber, IsDateString, IsArray } from 'class-validator';
+import { IsString, IsOptional, IsNotEmpty, IsNumber, IsDateString, IsArray, Min, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
+
+export class SubServiceItemDto {
+  @IsNumber()
+  sub_service_id: number;
+
+  @IsNumber()
+  @Min(1)
+  quantity: number;
+}
 
 export class CreateBookingDto {
   @IsNotEmpty()
@@ -9,6 +19,17 @@ export class CreateBookingDto {
   @IsArray()
   @IsNumber({}, { each: true })
   sub_service_ids?: number[];
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => SubServiceItemDto)
+  sub_service_items?: SubServiceItemDto[];
+
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  quantity?: number;
 
   @IsOptional()
   @IsNumber()
@@ -37,4 +58,8 @@ export class CreateBookingDto {
   @IsOptional()
   @IsNumber()
   service_id?: number;
+
+  @IsOptional()
+  @IsString()
+  coupon_code?: string;
 }

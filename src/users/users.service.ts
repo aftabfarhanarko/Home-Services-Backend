@@ -5,6 +5,13 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User, UserStatus } from './entities/user.entity';
 
+const USER_PROFILE_RELATIONS = {
+  categories: true,
+  devision: true,
+  district: { devision: true },
+  area: true,
+} as const;
+
 @Injectable()
 export class UsersService {
   constructor(
@@ -30,7 +37,7 @@ export class UsersService {
   async findEmployeesByVendor(vendorId: number): Promise<User[]> {
     return this.userRepository.find({
       where: { vendor: { id: vendorId } },
-      relations: { role: true, profile: { categories: true } },
+      relations: { role: true, profile: USER_PROFILE_RELATIONS },
     });
   }
 
@@ -44,13 +51,13 @@ export class UsersService {
       ];
       return this.userRepository.find({
         where: vendorWhere,
-        relations: { role: true, profile: { categories: true }, vendor: true, agent: true }
+        relations: { role: true, profile: USER_PROFILE_RELATIONS, vendor: true, agent: true }
       });
     } else if (user?.role?.toLowerCase() === 'agent' || user?.role?.toLowerCase() === 'super admin' || user?.role?.toLowerCase() === 'superadmin') {
       const adminWhere: any = Object.keys(whereRole).length > 0 ? whereRole : undefined;
       return this.userRepository.find({ 
         where: adminWhere,
-        relations: { role: true, profile: { categories: true }, vendor: true, agent: true } 
+        relations: { role: true, profile: USER_PROFILE_RELATIONS, vendor: true, agent: true } 
       });
     }
     
@@ -59,7 +66,7 @@ export class UsersService {
       const fallbackWhere: any = { id: user.sub, ...whereRole };
       return this.userRepository.find({
         where: fallbackWhere,
-        relations: { role: true, profile: { categories: true }, vendor: true, agent: true }
+        relations: { role: true, profile: USER_PROFILE_RELATIONS, vendor: true, agent: true }
       });
     }
 
@@ -69,7 +76,7 @@ export class UsersService {
   async findOne(id: number): Promise<User> {
     const user = await this.userRepository.findOne({ 
       where: { id }, 
-      relations: { role: true, profile: { categories: true } } 
+      relations: { role: true, profile: USER_PROFILE_RELATIONS } 
     });
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
@@ -79,6 +86,13 @@ export class UsersService {
 
   async findByPhone(phone: string): Promise<User | null> {
     return this.userRepository.findOne({ where: { phone }, relations: { role: true } });
+  }
+
+  async findByRoleName(roleName: string): Promise<User[]> {
+    return this.userRepository.find({
+      where: { role: { name: roleName as any } },
+      relations: { role: true },
+    });
   }
 
   async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {

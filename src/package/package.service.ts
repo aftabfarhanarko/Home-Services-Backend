@@ -41,7 +41,7 @@ export class PackageService {
 
   async findAllPublic() {
     const packages = await this.packageRepository.find({
-      relations: { service: true, items: { nestedService: true } },
+      relations: { service: { vendor: true }, items: { nestedService: true } },
     });
 
     const grouped = packages.reduce((acc, pkg) => {

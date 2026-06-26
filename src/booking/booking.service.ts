@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { CreateBookingDto } from './dto/create-booking.dto';
@@ -6,9 +7,15 @@ import { UpdateBookingDto } from './dto/update-booking.dto';
 import { Booking, BookingStatus } from './entities/booking.entity';
 import { SubService } from '../sub-service/entities/sub-service.entity';
 import { Package } from '../package/entities/package.entity';
+import { CouponService } from '../coupon/coupon.service';
+import { SmsService } from '../sms/sms.service';
+import { UsersService } from '../users/users.service';
+import { RoleType } from '../roles/entities/role.entity';
 
 @Injectable()
 export class BookingService {
+  private readonly logger = new Logger(BookingService.name);
+
   constructor(
     @InjectRepository(Booking)
     private readonly bookingRepository: Repository<Booking>,
@@ -16,6 +23,10 @@ export class BookingService {
     private readonly subServiceRepository: Repository<SubService>,
     @InjectRepository(Package)
     private readonly packageRepository: Repository<Package>,
+    private readonly couponService: CouponService,
+    private readonly smsService: SmsService,
+    private readonly usersService: UsersService,
+    private readonly configService: ConfigService,
   ) {}
 
   async create(createBookingDto: CreateBookingDto, userId: number, userReq?: any) {
@@ -34,28 +45,239 @@ export class BookingService {
     }
 
     let totalPrice = 0;
+    const bookingQuantity = createBookingDto.quantity && createBookingDto.quantity > 0
+      ? createBookingDto.quantity
+      : 1;
+    bookingData.quantity = bookingQuantity;
 
-    if (createBookingDto.sub_service_ids && createBookingDto.sub_service_ids.length > 0) {
+    const subServiceItems = createBookingDto.sub_service_items?.length
+      ? createBookingDto.sub_service_items
+      : (createBookingDto.sub_service_ids || []).map((id) => ({
+          sub_service_id: id,
+          quantity: 1,
+        }));
+
+    if (subServiceItems.length > 0) {
+      const subServiceIds = subServiceItems.map((item) => item.sub_service_id);
       const subServices = await this.subServiceRepository.find({
-        where: { id: In(createBookingDto.sub_service_ids) }
+        where: { id: In(subServiceIds) },
       });
       bookingData.subServices = subServices;
-      totalPrice += subServices.reduce((sum, ss) => sum + Number(ss.price || 0), 0);
+      bookingData.sub_service_items = subServiceItems;
+      totalPrice += subServiceItems.reduce((sum, item) => {
+        const subService = subServices.find((ss) => ss.id === item.sub_service_id);
+        return sum + Number(subService?.price || 0) * item.quantity;
+      }, 0);
     }
-    
+
+    delete bookingData.sub_service_ids;
+
     if (createBookingDto.package_id) {
       const pkg = await this.packageRepository.findOne({
         where: { id: createBookingDto.package_id }
       });
       if (pkg) {
         bookingData.pkg = pkg;
-        totalPrice += Number(pkg.price || 0);
+        totalPrice += Number(pkg.price || 0) * bookingQuantity;
       }
     }
 
+    bookingData.subtotal = totalPrice;
+    bookingData.discount_amount = 0;
     bookingData.total_price = totalPrice;
+
+    if (createBookingDto.coupon_code?.trim()) {
+      const couponResult = await this.couponService.applyCoupon(
+        createBookingDto.coupon_code,
+        totalPrice,
+        createBookingDto.service_id,
+        createBookingDto.package_id,
+      );
+      bookingData.coupon_code = couponResult.coupon.code;
+      bookingData.discount_amount = couponResult.discount_amount;
+      bookingData.total_price = couponResult.final_price;
+    }
+
     const booking = this.bookingRepository.create(bookingData);
-    return await this.bookingRepository.save(booking);
+    const saveResult = await this.bookingRepository.save(booking);
+    const savedBooking = Array.isArray(saveResult) ? saveResult[0] : saveResult;
+
+    const requesterRole = userReq?.role?.toLowerCase().replace(/\s+/g, '') || '';
+    if (requesterRole === 'client') {
+      this.notifyVendorAndSuperAdmin(savedBooking.id, createBookingDto.vendor_id).catch(
+        (error) =>
+          this.logger.error(
+            `Failed to send booking SMS notifications for booking #${savedBooking.id}`,
+            error?.message || error,
+          ),
+      );
+    }
+
+    return savedBooking;
+  }
+
+  private getStatusLabel(status: BookingStatus): string {
+    const labels: Record<BookingStatus, string> = {
+      [BookingStatus.PENDING]: 'Pending',
+      [BookingStatus.ASSIGNED]: 'Assigned',
+      [BookingStatus.ON_THE_WAY]: 'On the way',
+      [BookingStatus.COMPLETED]: 'Completed',
+      [BookingStatus.CANCELLED]: 'Cancelled',
+    };
+    return labels[status] || status;
+  }
+
+  private buildStatusChangeSmsMessage(booking: Booking, newStatus: BookingStatus) {
+    const serviceLabel =
+      booking.service?.name ||
+      booking.pkg?.name ||
+      booking.subServices?.map((s) => s.name).join(', ') ||
+      'your service';
+    const schedule = booking.time ? `${booking.date} ${booking.time}` : booking.date;
+    const statusLabel = this.getStatusLabel(newStatus);
+
+    return (
+      `Rajsheba: Booking #${booking.id} status updated to "${statusLabel}". ` +
+      `Service: ${serviceLabel}. Scheduled: ${schedule}. ` +
+      `Track your booking in the Rajsheba app.`
+    );
+  }
+
+  private async notifyClientOnStatusChange(
+    bookingId: number,
+    newStatus: BookingStatus,
+    previousStatus?: BookingStatus,
+  ) {
+    if (previousStatus && previousStatus === newStatus) return;
+
+    const booking = await this.bookingRepository.findOne({
+      where: { id: bookingId },
+      relations: { user: true, service: true, pkg: true, subServices: true },
+    });
+
+    if (!booking?.user?.phone) return;
+
+    const message = this.buildStatusChangeSmsMessage(booking, newStatus);
+    await this.smsService.sendMessage(booking.user.phone, message);
+  }
+
+  private buildCompletedBookingSmsMessage(booking: Booking) {
+    const clientName = booking.user?.name || 'Client';
+    const clientPhone = booking.user?.phone || 'N/A';
+    const serviceLabel =
+      booking.service?.name ||
+      booking.pkg?.name ||
+      booking.subServices?.map((s) => s.name).join(', ') ||
+      'Service';
+    const schedule = booking.time ? `${booking.date} ${booking.time}` : booking.date;
+
+    return (
+      `Rajsheba: Booking #${booking.id} has been completed. ` +
+      `Client: ${clientName} (${clientPhone}). ${serviceLabel}. ` +
+      `Date: ${schedule}. Location: ${booking.location}. ` +
+      `Total: ৳${Number(booking.total_price || 0).toLocaleString()}.`
+    );
+  }
+
+  private async notifyVendorAndSuperAdminOnCompletion(bookingId: number) {
+    const booking = await this.bookingRepository.findOne({
+      where: { id: bookingId },
+      relations: { user: true, vendor: true, service: true, pkg: true, subServices: true },
+    });
+
+    if (!booking) return;
+
+    const message = this.buildCompletedBookingSmsMessage(booking);
+    const recipientPhones = new Set<string>();
+
+    const vendorId = booking.vendor?.id;
+    if (vendorId) {
+      const vendor = await this.usersService.findOne(vendorId);
+      if (vendor?.phone) recipientPhones.add(vendor.phone);
+    }
+
+    const superAdmins = await this.usersService.findByRoleName(RoleType.SUPER_ADMIN);
+    for (const admin of superAdmins) {
+      if (admin.phone) recipientPhones.add(admin.phone);
+    }
+
+    const fallbackPhone = this.configService.get<string>('SUPERADMIN_PHONE');
+    if (fallbackPhone) recipientPhones.add(fallbackPhone);
+
+    await Promise.all(
+      [...recipientPhones].map((phone) => this.smsService.sendMessage(phone, message)),
+    );
+  }
+
+  private sendStatusChangeNotifications(
+    bookingId: number,
+    newStatus: BookingStatus,
+    previousStatus?: BookingStatus,
+  ) {
+    if (previousStatus && previousStatus === newStatus) return;
+
+    this.notifyClientOnStatusChange(bookingId, newStatus, previousStatus).catch(
+      (error) =>
+        this.logger.error(
+          `Failed to send status SMS to client for booking #${bookingId}`,
+          error?.message || error,
+        ),
+    );
+
+    if (newStatus === BookingStatus.COMPLETED) {
+      this.notifyVendorAndSuperAdminOnCompletion(bookingId).catch((error) =>
+        this.logger.error(
+          `Failed to send completion SMS to vendor/admin for booking #${bookingId}`,
+          error?.message || error,
+        ),
+      );
+    }
+  }
+
+  private buildBookingSmsMessage(booking: Booking, clientName: string, clientPhone: string) {
+    const serviceLabel =
+      booking.service?.name ||
+      booking.pkg?.name ||
+      booking.subServices?.map((s) => s.name).join(', ') ||
+      'Service';
+    const schedule = booking.time ? `${booking.date} ${booking.time}` : booking.date;
+
+    return (
+      `Rajsheba: New booking #${booking.id} by ${clientName} (${clientPhone}). ` +
+      `${serviceLabel}. Date: ${schedule}. Location: ${booking.location}. ` +
+      `Total: ৳${Number(booking.total_price || 0).toLocaleString()}.`
+    );
+  }
+
+  private async notifyVendorAndSuperAdmin(bookingId: number, vendorId: number) {
+    const booking = await this.bookingRepository.findOne({
+      where: { id: bookingId },
+      relations: { user: true, vendor: true, service: true, pkg: true, subServices: true },
+    });
+
+    if (!booking) return;
+
+    const clientName = booking.user?.name || 'Client';
+    const clientPhone = booking.user?.phone || 'N/A';
+    const message = this.buildBookingSmsMessage(booking, clientName, clientPhone);
+    const recipientPhones = new Set<string>();
+
+    if (vendorId) {
+      const vendor = await this.usersService.findOne(vendorId);
+      if (vendor?.phone) recipientPhones.add(vendor.phone);
+    }
+
+    const superAdmins = await this.usersService.findByRoleName(RoleType.SUPER_ADMIN);
+    for (const admin of superAdmins) {
+      if (admin.phone) recipientPhones.add(admin.phone);
+    }
+
+    const fallbackPhone = this.configService.get<string>('SUPERADMIN_PHONE');
+    if (fallbackPhone) recipientPhones.add(fallbackPhone);
+
+    await Promise.all(
+      [...recipientPhones].map((phone) => this.smsService.sendMessage(phone, message)),
+    );
   }
 
   async findAll(user: any) {
@@ -124,21 +346,46 @@ export class BookingService {
 
   async update(id: number, updateBookingDto: UpdateBookingDto) {
     const booking = await this.findOne(id);
+    const previousStatus = booking.status;
     Object.assign(booking, updateBookingDto);
-    return await this.bookingRepository.save(booking);
+
+    const saveResult = await this.bookingRepository.save(booking);
+    const savedBooking = Array.isArray(saveResult) ? saveResult[0] : saveResult;
+
+    if (savedBooking.status !== previousStatus) {
+      this.sendStatusChangeNotifications(savedBooking.id, savedBooking.status, previousStatus);
+    }
+
+    return savedBooking;
   }
 
   async assignEmployees(bookingId: number, employeeIds: number[]) {
     const booking = await this.findOne(bookingId);
+    const previousStatus = booking.status;
     booking.employees = employeeIds.map(id => ({ id } as any));
     booking.status = BookingStatus.ASSIGNED;
-    return await this.bookingRepository.save(booking);
+
+    const saveResult = await this.bookingRepository.save(booking);
+    const savedBooking = Array.isArray(saveResult) ? saveResult[0] : saveResult;
+
+    if (previousStatus !== BookingStatus.ASSIGNED) {
+      this.sendStatusChangeNotifications(savedBooking.id, BookingStatus.ASSIGNED, previousStatus);
+    }
+
+    return savedBooking;
   }
 
   async updateStatus(bookingId: number, status: BookingStatus) {
     const booking = await this.findOne(bookingId);
+    const previousStatus = booking.status;
     booking.status = status;
-    return await this.bookingRepository.save(booking);
+
+    const saveResult = await this.bookingRepository.save(booking);
+    const savedBooking = Array.isArray(saveResult) ? saveResult[0] : saveResult;
+
+    this.sendStatusChangeNotifications(savedBooking.id, status, previousStatus);
+
+    return savedBooking;
   }
 
   async remove(id: number) {

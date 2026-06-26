@@ -22,6 +22,7 @@ import { DistrictModule } from './district/district.module';
 import { AreaModule } from './area/area.module';
 import { ChatModule } from './chat/chat.module';
 import { GetwayModule } from './getway/getway.module';
+import { CouponModule } from './coupon/coupon.module';
 
 @Module({
   imports: [
@@ -60,6 +61,7 @@ import { GetwayModule } from './getway/getway.module';
     AreaModule,
     ChatModule,
     GetwayModule,
+    CouponModule,
   ],
   controllers: [AppController],
   providers: [AppService],
