@@ -24,7 +24,6 @@ import { ChatModule } from './chat/chat.module';
 import { GetwayModule } from './getway/getway.module';
 import { CouponModule } from './coupon/coupon.module';
 import { ContactModule } from './contact/contact.module';
-import { HelpModule } from './help/help.module';
 import { NotificationModule } from './notification/notification.module';
 
 @Module({
@@ -66,7 +65,6 @@ import { NotificationModule } from './notification/notification.module';
     GetwayModule,
     CouponModule,
     ContactModule,
-    HelpModule,
     NotificationModule,
   ],
   controllers: [AppController],

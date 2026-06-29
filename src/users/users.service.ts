@@ -126,7 +126,7 @@ export class UsersService {
       const roleName = existingUser.role?.name?.toLowerCase() || '';
       if (roleName === 'vendor' || roleName === 'agent') {
         const message = `Congratulations! Your Rajseba account has been activated. Please login to your dashboard to manage your activities.`;
-        this.smsService.sendSms(savedUser.phone, message).catch(err => {
+        this.smsService.sendMessage(savedUser.phone, message).catch(err => {
           console.error(`Failed to send activation SMS to ${savedUser.phone}:`, err);
         });
       }
