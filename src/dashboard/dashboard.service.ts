@@ -67,7 +67,7 @@ export class DashboardService {
     }));
 
     // Fill missing days
-    const fullChartData = [];
+    const fullChartData: { date: string; amount: number; }[] = [];
     for (let i = 0; i < 7; i++) {
       const d = new Date(sevenDaysAgo);
       d.setDate(sevenDaysAgo.getDate() + i);
