@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, DeepPartial } from 'typeorm';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
 import { SearchServiceDto } from './dto/search-service.dto';
@@ -30,7 +30,7 @@ export class ServiceService {
       serviceData.vendor = { id: createServiceDto.vendor_id };
       delete serviceData.vendor_id;
     }
-    const service = this.serviceRepository.create(serviceData);
+    const service = this.serviceRepository.create(serviceData as DeepPartial<Service>);
     const savedService = await this.serviceRepository.save(service);
     
     // Trigger Notification
