@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, UseGuards, Req } from '@nestjs/common';
 import { DashboardService } from './dashboard.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../roles/guards/roles.guard';
@@ -11,8 +11,8 @@ export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
 
   @Get('overview')
-  @Roles(RoleType.SUPER_ADMIN)
-  async getOverview() {
+  @Roles(RoleType.SUPER_ADMIN, RoleType.VENDOR, RoleType.AGENT, RoleType.CLIENT)
+  async getOverview(@Req() req: any) {
     const data = await this.dashboardService.getOverviewStats();
     return {
       success: true,

@@ -88,11 +88,17 @@ export class DashboardService {
     });
     
     const completedBookings = await this.bookingRepository.count({
-      where: { status: BookingStatus.COMPLETED }
+      where: { 
+        status: BookingStatus.COMPLETED,
+        createdAt: Between(startOfToday, endOfToday)
+      }
     });
     
     const pendingBookings = await this.bookingRepository.count({
-      where: { status: BookingStatus.PENDING }
+      where: { 
+        status: BookingStatus.PENDING,
+        createdAt: Between(startOfToday, endOfToday)
+      }
     });
 
     // 3. User Stats
