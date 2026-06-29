@@ -11,6 +11,8 @@ import { CouponService } from '../coupon/coupon.service';
 import { SmsService } from '../sms/sms.service';
 import { UsersService } from '../users/users.service';
 import { RoleType } from '../roles/entities/role.entity';
+import { NotificationService } from '../notification/notification.service';
+import { NotificationType } from '../notification/entities/notification.entity';
 
 @Injectable()
 export class BookingService {
@@ -27,6 +29,7 @@ export class BookingService {
     private readonly smsService: SmsService,
     private readonly usersService: UsersService,
     private readonly configService: ConfigService,
+    private readonly notificationService: NotificationService,
   ) {}
 
   async create(createBookingDto: CreateBookingDto, userId: number, userReq?: any) {
@@ -113,6 +116,13 @@ export class BookingService {
       );
     }
 
+    // Trigger Notification System
+    const msg = `New booking #${savedBooking.id} created.`;
+    this.notificationService.createForSuperAdmins(msg, NotificationType.BOOKING).catch(e => this.logger.error(e));
+    if (createBookingDto.vendor_id) {
+      this.notificationService.createForUser(createBookingDto.vendor_id, msg, NotificationType.BOOKING).catch(e => this.logger.error(e));
+    }
+
     return savedBooking;
   }
 
@@ -135,11 +145,12 @@ export class BookingService {
       'your service';
     const schedule = booking.time ? `${booking.date} ${booking.time}` : booking.date;
     const statusLabel = this.getStatusLabel(newStatus);
+    const trackingLink = `https://rajsheba.com/track/${booking.id}`;
 
     return (
       `Rajsheba: Booking #${booking.id} status updated to "${statusLabel}". ` +
       `Service: ${serviceLabel}. Scheduled: ${schedule}. ` +
-      `Track your booking in the Rajsheba app.`
+      `Track your booking: ${trackingLink}`
     );
   }
 
@@ -388,6 +399,18 @@ export class BookingService {
     return booking;
   }
 
+  async track(id: number) {
+    const booking = await this.bookingRepository.findOne({
+      where: { id },
+      relations: { user: { agent: true }, vendor: true, employees: true, subServices: true, pkg: true, service: true, agent: true },
+    });
+    if (!booking) {
+      throw new NotFoundException(`Booking with ID ${id} not found`);
+    }
+
+    return booking;
+  }
+
   async update(id: number, updateBookingDto: UpdateBookingDto) {
     const booking = await this.findOne(id);
     const previousStatus = booking.status;
@@ -428,6 +451,18 @@ export class BookingService {
     const savedBooking = Array.isArray(saveResult) ? saveResult[0] : saveResult;
 
     this.sendStatusChangeNotifications(savedBooking.id, status, previousStatus);
+    
+    // In-App Notification for Booking Status Change
+    if (status === BookingStatus.COMPLETED) {
+      const msg = `Booking #${savedBooking.id} has been completed.`;
+      this.notificationService.createForSuperAdmins(msg, NotificationType.BOOKING).catch(e => this.logger.error(e));
+      if (booking.vendor?.id) {
+        this.notificationService.createForUser(booking.vendor.id, msg, NotificationType.BOOKING).catch(e => this.logger.error(e));
+      }
+      if (booking.user?.id) {
+        this.notificationService.createForUser(booking.user.id, msg, NotificationType.BOOKING).catch(e => this.logger.error(e));
+      }
+    }
 
     return savedBooking;
   }

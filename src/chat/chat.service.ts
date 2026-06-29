@@ -13,7 +13,7 @@ export class ChatService {
     private readonly userRepository: Repository<User>,
   ) {}
 
-  async saveMessage(senderId: number, receiverId: number, content: string): Promise<Message> {
+  async saveMessage(senderId: number, receiverId: number, content: string, imageUrl?: string): Promise<Message> {
     const sender = await this.userRepository.findOne({ where: { id: senderId } });
     const receiver = await this.userRepository.findOne({ where: { id: receiverId } });
 
@@ -25,6 +25,7 @@ export class ChatService {
       sender,
       receiver,
       content,
+      imageUrl,
     });
 
     return this.messageRepository.save(message);
@@ -63,7 +64,7 @@ export class ChatService {
             name: otherUser.name,
             email: otherUser.email,
           },
-          lastMessage: msg.content,
+          lastMessage: msg.imageUrl ? '📷 Image' : msg.content,
           lastMessageAt: msg.createdAt,
           isRead: msg.isRead,
         });

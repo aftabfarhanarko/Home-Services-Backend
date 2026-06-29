@@ -5,12 +5,15 @@ import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
 import { SearchServiceDto } from './dto/search-service.dto';
 import { Service } from './entities/service.entity';
+import { NotificationService } from '../notification/notification.service';
+import { NotificationType } from '../notification/entities/notification.entity';
 
 @Injectable()
 export class ServiceService {
   constructor(
     @InjectRepository(Service)
     private readonly serviceRepository: Repository<Service>,
+    private readonly notificationService: NotificationService,
   ) {}
 
   async create(createServiceDto: CreateServiceDto) {
@@ -28,7 +31,13 @@ export class ServiceService {
       delete serviceData.vendor_id;
     }
     const service = this.serviceRepository.create(serviceData);
-    return await this.serviceRepository.save(service);
+    const savedService = await this.serviceRepository.save(service);
+    
+    // Trigger Notification
+    const msg = `New service '${savedService.name}' has been created.`;
+    this.notificationService.createForSuperAdmins(msg, NotificationType.SERVICE).catch(e => console.error(e));
+    
+    return savedService;
   }
 
   async findAll(user: any) {

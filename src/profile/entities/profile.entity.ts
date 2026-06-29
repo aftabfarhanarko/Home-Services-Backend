@@ -35,6 +35,9 @@ export class Profile {
   @Column({ nullable: true })
   location: string;
 
+  @Column({ nullable: true })
+  picture: string;
+
   @ManyToOne(() => Devision, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'devision_id' })
   devision: Devision;

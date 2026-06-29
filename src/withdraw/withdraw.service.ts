@@ -6,6 +6,10 @@ import { UpdateWithdrawDto } from './dto/update-withdraw.dto';
 import { Withdraw, WithdrawStatus } from './entities/withdraw.entity';
 import { User } from '../users/entities/user.entity';
 import { Booking } from '../booking/entities/booking.entity';
+import { SmsService } from '../sms/sms.service';
+import { RoleType } from '../roles/entities/role.entity';
+import { NotificationService } from '../notification/notification.service';
+import { NotificationType } from '../notification/entities/notification.entity';
 
 @Injectable()
 export class WithdrawService {
@@ -16,6 +20,8 @@ export class WithdrawService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(Booking)
     private readonly bookingRepository: Repository<Booking>,
+    private readonly smsService: SmsService,
+    private readonly notificationService: NotificationService,
   ) {}
 
   async create(createWithdrawDto: CreateWithdrawDto, vendorId: number) {
@@ -78,7 +84,35 @@ export class WithdrawService {
       booking: createWithdrawDto.bookingId ? { id: createWithdrawDto.bookingId } : undefined,
       getway: createWithdrawDto.gatewayId ? { id: createWithdrawDto.gatewayId } : undefined,
     });
-    return await this.withdrawRepository.save(withdraw);
+    const savedWithdraw = await this.withdrawRepository.save(withdraw);
+
+    if (requester.phone) {
+      const message = `Your withdraw request for BDT ${amount} has been submitted successfully.`;
+      this.smsService.sendMessage(requester.phone, message).catch(err => {
+        console.error('Failed to send SMS on withdraw creation:', err);
+      });
+    }
+
+    // Send SMS to superadmins
+    try {
+      const superadmins = await this.userRepository.find({
+        relations: { role: true },
+        where: { role: { name: RoleType.SUPER_ADMIN } }
+      });
+
+      for (const admin of superadmins) {
+        if (admin.phone) {
+          const adminMessage = `New withdraw request for BDT ${amount} submitted by ${requester.name || 'Vendor/Agent'}.`;
+          this.smsService.sendMessage(admin.phone, adminMessage).catch(err => {
+            console.error(`Failed to send SMS to superadmin ${admin.phone}:`, err);
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching superadmins for SMS notification:', error);
+    }
+
+    return savedWithdraw;
   }
 
   async findAll() {
@@ -134,7 +168,31 @@ export class WithdrawService {
       withdraw.admin_note = admin_note;
     }
     
-    return await this.withdrawRepository.save(withdraw);
+    const savedWithdraw = await this.withdrawRepository.save(withdraw);
+
+    if (status === WithdrawStatus.APPROVED) {
+      const vendor = await this.userRepository.findOne({ where: { id: withdraw.vendor.id } });
+      if (vendor && vendor.phone) {
+        const message = `Your withdraw request for BDT ${withdraw.amount} has been approved.`;
+        this.smsService.sendMessage(vendor.phone, message).catch(err => {
+          console.error('Failed to send SMS on withdraw approval:', err);
+        });
+      }
+      
+      // Trigger Notification
+      const msg = `Your withdraw request for BDT ${withdraw.amount} has been approved.`;
+      if (withdraw.vendor?.id) {
+        this.notificationService.createForUser(withdraw.vendor.id, msg, NotificationType.WITHDRAW).catch(e => console.error(e));
+      }
+    } else if (status === WithdrawStatus.REJECTED) {
+      // Trigger Notification
+      const msg = `Your withdraw request for BDT ${withdraw.amount} has been rejected.`;
+      if (withdraw.vendor?.id) {
+        this.notificationService.createForUser(withdraw.vendor.id, msg, NotificationType.WITHDRAW).catch(e => console.error(e));
+      }
+    }
+
+    return savedWithdraw;
   }
 
   async remove(id: number) {

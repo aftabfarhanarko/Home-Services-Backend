@@ -18,4 +18,13 @@ export class AppController {
       timestamp: new Date().toISOString()
     };
   }
+
+  @Get('stats')
+  async getStats() {
+    return {
+      success: true,
+      message: 'Platform statistics retrieved successfully',
+      data: await this.appService.getPublicStats()
+    };
+  }
 }

@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User, UserStatus } from './entities/user.entity';
+import { SmsService } from '../sms/sms.service';
 
 const USER_PROFILE_RELATIONS = {
   categories: true,
@@ -17,6 +18,7 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    private readonly smsService: SmsService,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -96,6 +98,16 @@ export class UsersService {
   }
 
   async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
+    const existingUser = await this.userRepository.findOne({
+      where: { id },
+      relations: { role: true },
+    });
+
+    if (!existingUser) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
+
+    const wasInactive = existingUser.status !== 'active';
     const roleUpdate = updateUserDto.roleId ? { role: { id: updateUserDto.roleId } as any } : {};
     
     const user = await this.userRepository.preload({
@@ -108,7 +120,19 @@ export class UsersService {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
 
-    return this.userRepository.save(user);
+    const savedUser = await this.userRepository.save(user);
+
+    if (wasInactive && savedUser.status === 'active' && savedUser.phone) {
+      const roleName = existingUser.role?.name?.toLowerCase() || '';
+      if (roleName === 'vendor' || roleName === 'agent') {
+        const message = `Congratulations! Your Rajseba account has been activated. Please login to your dashboard to manage your activities.`;
+        this.smsService.sendSms(savedUser.phone, message).catch(err => {
+          console.error(`Failed to send activation SMS to ${savedUser.phone}:`, err);
+        });
+      }
+    }
+
+    return savedUser;
   }
 
   async remove(id: number): Promise<void> {

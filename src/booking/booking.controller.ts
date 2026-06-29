@@ -63,6 +63,16 @@ export class BookingController {
     };
   }
 
+  @Get('track/:id')
+  async trackBooking(@Param('id') id: string) {
+    const data = await this.bookingService.track(+id);
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Booking tracking retrieved successfully',
+      data,
+    };
+  }
+
   @Patch(':id')
   async update(@Param('id') id: string, @Body() updateBookingDto: UpdateBookingDto) {
     const data = await this.bookingService.update(+id, updateBookingDto);
