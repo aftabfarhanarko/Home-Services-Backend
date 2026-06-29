@@ -30,7 +30,7 @@ export class BookingService {
     private readonly usersService: UsersService,
     private readonly configService: ConfigService,
     private readonly notificationService: NotificationService,
-  ) {}
+  ) { }
 
   async create(createBookingDto: CreateBookingDto, userId: number, userReq?: any) {
     const finalUserId = createBookingDto.user_id || userId;
@@ -56,9 +56,9 @@ export class BookingService {
     const subServiceItems = createBookingDto.sub_service_items?.length
       ? createBookingDto.sub_service_items
       : (createBookingDto.sub_service_ids || []).map((id) => ({
-          sub_service_id: id,
-          quantity: 1,
-        }));
+        sub_service_id: id,
+        quantity: 1,
+      }));
 
     if (subServiceItems.length > 0) {
       const subServiceIds = subServiceItems.map((item) => item.sub_service_id);
@@ -145,7 +145,7 @@ export class BookingService {
       'your service';
     const schedule = booking.time ? `${booking.date} ${booking.time}` : booking.date;
     const statusLabel = this.getStatusLabel(newStatus);
-    const trackingLink = `https://rajsheba.com/track/${booking.id}`;
+    const trackingLink = `https://www.rajseba.com/track/${booking.id}`;
 
     return (
       `Rajsheba: Booking #${booking.id} status updated to "${statusLabel}". ` +
@@ -451,7 +451,7 @@ export class BookingService {
     const savedBooking = Array.isArray(saveResult) ? saveResult[0] : saveResult;
 
     this.sendStatusChangeNotifications(savedBooking.id, status, previousStatus);
-    
+
     // In-App Notification for Booking Status Change
     if (status === BookingStatus.COMPLETED) {
       const msg = `Booking #${savedBooking.id} has been completed.`;
