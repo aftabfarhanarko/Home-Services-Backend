@@ -25,6 +25,7 @@ import { GetwayModule } from './getway/getway.module';
 import { CouponModule } from './coupon/coupon.module';
 import { ContactModule } from './contact/contact.module';
 import { NotificationModule } from './notification/notification.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -66,6 +67,7 @@ import { NotificationModule } from './notification/notification.module';
     CouponModule,
     ContactModule,
     NotificationModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [AppService],
