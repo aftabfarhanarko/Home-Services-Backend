@@ -9,11 +9,11 @@ export class NotificationController {
 
   @Get()
   getUserNotifications(@Request() req) {
-    return this.notificationService.getUserNotifications(req.user.id);
+    return this.notificationService.getUserNotifications(req.user.userId);
   }
 
   @Patch(':id/read')
   markAsRead(@Param('id') id: string, @Request() req) {
-    return this.notificationService.markAsRead(+id, req.user.id);
+    return this.notificationService.markAsRead(+id, req.user.userId);
   }
 }
