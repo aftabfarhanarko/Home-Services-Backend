@@ -26,6 +26,7 @@ import { CouponModule } from './coupon/coupon.module';
 import { ContactModule } from './contact/contact.module';
 import { NotificationModule } from './notification/notification.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { HeroModule } from './hero/hero.module';
 
 @Module({
   imports: [
@@ -68,6 +69,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
     ContactModule,
     NotificationModule,
     DashboardModule,
+    HeroModule,
   ],
   controllers: [AppController],
   providers: [AppService],
