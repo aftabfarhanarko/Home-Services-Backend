@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { CacheModule } from '@nestjs/cache-manager';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { AppController } from './app.controller';
@@ -39,14 +40,18 @@ import { HeroModule } from './hero/hero.module';
         type: 'postgres',
         url: configService.get<string>('DATABASE_URL'),
         autoLoadEntities: true,
-        synchronize: true, // Use only in dev. In prod use migrations.
+        synchronize: process.env.NODE_ENV !== 'production', // Only sync in dev. In prod use migrations.
       }),
       inject: [ConfigService],
     }),
     ThrottlerModule.forRoot([{
       ttl: 60000,
-      limit: 10,
+      limit: 30, // Increased limit for production
     }]),
+    CacheModule.register({
+      isGlobal: true,
+      ttl: 60000, // cache for 60 seconds by default
+    }),
     UsersModule,
     AuthModule,
     RolesModule,

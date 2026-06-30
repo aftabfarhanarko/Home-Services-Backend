@@ -43,21 +43,21 @@ export class ServiceService {
   async findAll(user: any) {
     if (!user) {
       return await this.serviceRepository.find({
-        relations: { nestedServices: { subServices: true }, packages: true, employees: true, vendor: true, category: true, reviews: true, bookings: true },
+        relations: { nestedServices: { subServices: true }, packages: true, employees: true, vendor: true, category: true, reviews: true },
       });
     }
 
     const roleName = user?.role?.toLowerCase() || '';
     if (roleName === 'super admin' || roleName === 'superadmin' || roleName === 'admin' || roleName === 'agent' || roleName === 'client') {
       return await this.serviceRepository.find({
-        relations: { nestedServices: { subServices: true }, packages: true, employees: true, vendor: true, category: true, reviews: true, bookings: true },
+        relations: { nestedServices: { subServices: true }, packages: true, employees: true, vendor: true, category: true, reviews: true },
       });
     }
 
     if (roleName === 'vendor') {
       return await this.serviceRepository.find({
         where: { vendor: { id: user.sub } },
-        relations: { nestedServices: { subServices: true }, packages: true, employees: true, vendor: true, category: true, reviews: true, bookings: true },
+        relations: { nestedServices: { subServices: true }, packages: true, employees: true, vendor: true, category: true, reviews: true },
       });
     }
 
@@ -79,7 +79,6 @@ export class ServiceService {
       .leftJoinAndSelect('service.packages', 'packages')
       .leftJoinAndSelect('service.employees', 'employees')
       .leftJoinAndSelect('service.reviews', 'reviews')
-      .leftJoinAndSelect('service.bookings', 'bookings')
       .where('service.deletedAt IS NULL');
 
     if (params.category_id) {

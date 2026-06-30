@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, Index } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { Getway } from "../../getway/entities/getway.entity";
 import { Booking } from '../../booking/entities/booking.entity';
@@ -14,6 +14,7 @@ export class Withdraw {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Index()
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'vendor_id' })
   vendor: User;
@@ -32,6 +33,7 @@ export class Withdraw {
   @Column({ type: 'text', nullable: true })
   admin_note: string;
 
+  @Index()
   @Column({
     type: 'enum',
     enum: WithdrawStatus,

@@ -1,5 +1,8 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus, UseGuards, Req } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../roles/guards/roles.guard';
+import { Roles } from '../roles/decorators/roles.decorator';
+import { RoleType } from '../roles/entities/role.entity';
 import { NestedServiceService } from './nested-service.service';
 import { CreateNestedServiceDto } from './dto/create-nested-service.dto';
 import { UpdateNestedServiceDto } from './dto/update-nested-service.dto';
@@ -8,6 +11,8 @@ import { UpdateNestedServiceDto } from './dto/update-nested-service.dto';
 export class NestedServiceController {
   constructor(private readonly nestedServiceService: NestedServiceService) { }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(RoleType.SUPER_ADMIN, RoleType.VENDOR)
   @Post()
   async create(@Body() createNestedServiceDto: CreateNestedServiceDto) {
     const data = await this.nestedServiceService.create(createNestedServiceDto);
@@ -18,7 +23,6 @@ export class NestedServiceController {
     };
   }
 
-  // @UseGuards(JwtAuthGuard)
   @Get()
   async findAll(@Req() req: any) {
     const data = await this.nestedServiceService.findAll(req.user);
@@ -49,6 +53,8 @@ export class NestedServiceController {
     };
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(RoleType.SUPER_ADMIN, RoleType.VENDOR)
   @Patch(':id')
   async update(@Param('id') id: string, @Body() updateNestedServiceDto: UpdateNestedServiceDto) {
     const data = await this.nestedServiceService.update(+id, updateNestedServiceDto);
@@ -59,6 +65,8 @@ export class NestedServiceController {
     };
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(RoleType.SUPER_ADMIN, RoleType.VENDOR)
   @Delete(':id')
   async remove(@Param('id') id: string) {
     await this.nestedServiceService.remove(+id);

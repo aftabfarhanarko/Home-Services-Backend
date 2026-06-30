@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
 import { CreateWithdrawDto } from './dto/create-withdraw.dto';
 import { UpdateWithdrawDto } from './dto/update-withdraw.dto';
 import { Withdraw, WithdrawStatus } from './entities/withdraw.entity';
@@ -22,6 +22,7 @@ export class WithdrawService {
     private readonly bookingRepository: Repository<Booking>,
     private readonly smsService: SmsService,
     private readonly notificationService: NotificationService,
+    private readonly dataSource: DataSource,
   ) {}
 
   async create(createWithdrawDto: CreateWithdrawDto, vendorId: number) {
@@ -154,21 +155,23 @@ export class WithdrawService {
   async updateStatus(id: number, status: WithdrawStatus, admin_note?: string) {
     const withdraw = await this.findOne(id);
     
-    // If status is changed to APPROVED and it wasn't approved before
-    if (status === WithdrawStatus.APPROVED && withdraw.status !== WithdrawStatus.APPROVED) {
-      const vendor = await this.userRepository.findOne({ where: { id: withdraw.vendor.id } });
-      if (vendor) {
-        vendor.wallet_balance = Number(vendor.wallet_balance) + Number(withdraw.amount);
-        await this.userRepository.save(vendor);
+    const savedWithdraw = await this.dataSource.transaction(async (manager) => {
+      // If status is changed to APPROVED and it wasn't approved before
+      if (status === WithdrawStatus.APPROVED && withdraw.status !== WithdrawStatus.APPROVED) {
+        const vendor = await manager.findOne(User, { where: { id: withdraw.vendor.id } });
+        if (vendor) {
+          vendor.wallet_balance = Number(vendor.wallet_balance) + Number(withdraw.amount);
+          await manager.save(vendor);
+        }
       }
-    }
-    
-    withdraw.status = status;
-    if (admin_note) {
-      withdraw.admin_note = admin_note;
-    }
-    
-    const savedWithdraw = await this.withdrawRepository.save(withdraw);
+      
+      withdraw.status = status;
+      if (admin_note) {
+        withdraw.admin_note = admin_note;
+      }
+      
+      return await manager.save(withdraw);
+    });
 
     if (status === WithdrawStatus.APPROVED) {
       const vendor = await this.userRepository.findOne({ where: { id: withdraw.vendor.id } });

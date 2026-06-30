@@ -1,5 +1,8 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus, UseGuards, Req } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../roles/guards/roles.guard';
+import { Roles } from '../roles/decorators/roles.decorator';
+import { RoleType } from '../roles/entities/role.entity';
 import { PackageService } from './package.service';
 import { CreatePackageDto } from './dto/create-package.dto';
 import { UpdatePackageDto } from './dto/update-package.dto';
@@ -8,6 +11,8 @@ import { UpdatePackageDto } from './dto/update-package.dto';
 export class PackageController {
   constructor(private readonly packageService: PackageService) { }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(RoleType.SUPER_ADMIN, RoleType.VENDOR)
   @Post()
   async create(@Body() createPackageDto: CreatePackageDto) {
     const data = await this.packageService.create(createPackageDto);
@@ -18,7 +23,6 @@ export class PackageController {
     };
   }
 
-  // @UseGuards(JwtAuthGuard)
   @Get()
   async findAll(@Req() req: any) {
     const data = await this.packageService.findAll(req.user);
@@ -54,6 +58,8 @@ export class PackageController {
     };
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(RoleType.SUPER_ADMIN, RoleType.VENDOR)
   @Patch(':id')
   async update(@Param('id') id: string, @Body() updatePackageDto: UpdatePackageDto) {
     const data = await this.packageService.update(+id, updatePackageDto);
@@ -64,6 +70,8 @@ export class PackageController {
     };
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(RoleType.SUPER_ADMIN, RoleType.VENDOR)
   @Delete(':id')
   async remove(@Param('id') id: string) {
     await this.packageService.remove(+id);

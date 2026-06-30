@@ -1,16 +1,21 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus, UseGuards, Req } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../roles/guards/roles.guard';
+import { Roles } from '../roles/decorators/roles.decorator';
+import { RoleType } from '../roles/entities/role.entity';
 import { WithdrawService } from './withdraw.service';
 import { CreateWithdrawDto } from './dto/create-withdraw.dto';
 import { UpdateWithdrawDto } from './dto/update-withdraw.dto';
 import { WithdrawStatus } from './entities/withdraw.entity';
 
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('withdraws')
 export class WithdrawController {
-  constructor(private readonly withdrawService: WithdrawService) {}
+  constructor(private readonly withdrawService: WithdrawService) { }
 
   @Post('request')
-  async create(@Body() createWithdrawDto: CreateWithdrawDto) {
-    const vendorId = createWithdrawDto.vendorId || 1; // Fallback to 1 if not passed
+  async create(@Body() createWithdrawDto: CreateWithdrawDto, @Req() req: any) {
+    const vendorId = req.user.sub || req.user.id;
     const data = await this.withdrawService.create(createWithdrawDto, vendorId);
     return {
       statusCode: HttpStatus.CREATED,
@@ -49,9 +54,10 @@ export class WithdrawController {
     };
   }
 
+  @Roles(RoleType.SUPER_ADMIN)
   @Patch(':id/status')
   async updateStatus(
-    @Param('id') id: string, 
+    @Param('id') id: string,
     @Body('status') status: WithdrawStatus,
     @Body('admin_note') admin_note?: string,
   ) {
