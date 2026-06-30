@@ -416,6 +416,12 @@ export class BookingService {
     const previousStatus = booking.status;
     Object.assign(booking, updateBookingDto);
 
+    if (updateBookingDto.status && updateBookingDto.status !== previousStatus) {
+      if (updateBookingDto.status === BookingStatus.ASSIGNED) booking.assignedAt = new Date();
+      if (updateBookingDto.status === BookingStatus.ON_THE_WAY) booking.onTheWayAt = new Date();
+      if (updateBookingDto.status === BookingStatus.COMPLETED) booking.completedAt = new Date();
+    }
+
     const saveResult = await this.bookingRepository.save(booking);
     const savedBooking = Array.isArray(saveResult) ? saveResult[0] : saveResult;
 

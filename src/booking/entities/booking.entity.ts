@@ -83,6 +83,15 @@ export class Booking {
   })
   status: BookingStatus;
 
+  @Column({ type: 'timestamp', nullable: true })
+  assignedAt: Date;
+
+  @Column({ type: 'timestamp', nullable: true })
+  onTheWayAt: Date;
+
+  @Column({ type: 'timestamp', nullable: true })
+  completedAt: Date;
+
   @CreateDateColumn()
   createdAt: Date;
 
