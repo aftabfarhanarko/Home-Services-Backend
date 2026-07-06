@@ -60,6 +60,7 @@ async function bootstrap() {
     await queryRunner.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS nid_number text;`);
     await queryRunner.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS nid_front text;`);
     await queryRunner.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS nid_back text;`);
+    await queryRunner.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS area_name text;`);
     
     console.log('Database schema patched successfully.');
   } catch (err) {

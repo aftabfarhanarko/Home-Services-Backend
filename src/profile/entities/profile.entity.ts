@@ -50,6 +50,9 @@ export class Profile {
   @JoinColumn({ name: 'area_id' })
   area: Area;
 
+  @Column({ nullable: true })
+  area_name: string;
+
   @Column({ type: 'text', nullable: true })
   description: string;
 

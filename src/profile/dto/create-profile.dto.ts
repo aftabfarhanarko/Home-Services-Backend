@@ -69,4 +69,8 @@ export class CreateProfileDto {
   @IsOptional()
   @IsNumber()
   area_id?: number;
+
+  @IsOptional()
+  @IsString()
+  area_name?: string;
 }
