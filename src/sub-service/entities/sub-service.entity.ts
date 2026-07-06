@@ -16,6 +16,18 @@ export class SubService {
   @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
   price: number;
 
+  @Column({ type: 'text', nullable: true })
+  description: string;
+
+  @Column({ nullable: true })
+  image1: string;
+
+  @Column({ nullable: true })
+  image2: string;
+
+  @Column({ type: 'jsonb', nullable: true })
+  faq: { question: string; answer: string }[];
+
   @CreateDateColumn()
   createdAt: Date;
 

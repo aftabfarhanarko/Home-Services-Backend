@@ -38,6 +38,10 @@ export class SubServiceService {
     if (updateSubServiceDto.name !== undefined) subService.name = updateSubServiceDto.name;
     if (updateSubServiceDto.price !== undefined) subService.price = updateSubServiceDto.price;
     if (updateSubServiceDto.nested_service_id !== undefined) subService.nestedService = { id: updateSubServiceDto.nested_service_id } as any;
+    if (updateSubServiceDto.description !== undefined) subService.description = updateSubServiceDto.description;
+    if (updateSubServiceDto.image1 !== undefined) subService.image1 = updateSubServiceDto.image1;
+    if (updateSubServiceDto.image2 !== undefined) subService.image2 = updateSubServiceDto.image2;
+    if (updateSubServiceDto.faq !== undefined) subService.faq = updateSubServiceDto.faq;
     
     return await this.subServiceRepository.save(subService);
   }

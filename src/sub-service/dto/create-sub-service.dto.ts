@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsNumber } from 'class-validator';
+import { IsString, IsNotEmpty, IsNumber, IsOptional, IsArray } from 'class-validator';
 
 export class CreateSubServiceDto {
   @IsNotEmpty()
@@ -12,4 +12,20 @@ export class CreateSubServiceDto {
   @IsNotEmpty()
   @IsNumber()
   price: number;
+
+  @IsOptional()
+  @IsString()
+  description?: string;
+
+  @IsOptional()
+  @IsString()
+  image1?: string;
+
+  @IsOptional()
+  @IsString()
+  image2?: string;
+
+  @IsOptional()
+  @IsArray()
+  faq?: { question: string; answer: string }[];
 }
