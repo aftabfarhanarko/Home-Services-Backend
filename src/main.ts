@@ -3,6 +3,7 @@ import compression from 'compression';
 import helmet from 'helmet';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { DataSource } from 'typeorm';
 import { AppModule } from './app.module';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 
@@ -42,6 +43,22 @@ async function bootstrap() {
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, documentFactory);
+
+  // Run Database Patches to ensure new columns exist in production without migrations
+  const dataSource = app.get(DataSource);
+  const queryRunner = dataSource.createQueryRunner();
+  await queryRunner.connect();
+  try {
+    await queryRunner.query(`ALTER TABLE sub_services ADD COLUMN IF NOT EXISTS description text;`);
+    await queryRunner.query(`ALTER TABLE sub_services ADD COLUMN IF NOT EXISTS image1 text;`);
+    await queryRunner.query(`ALTER TABLE sub_services ADD COLUMN IF NOT EXISTS image2 text;`);
+    await queryRunner.query(`ALTER TABLE sub_services ADD COLUMN IF NOT EXISTS faq jsonb;`);
+    console.log('Database sub_services columns checked and patched successfully.');
+  } catch (err) {
+    console.error('Failed to run database sub_services schema patch:', err);
+  } finally {
+    await queryRunner.release();
+  }
 
   await app.listen(8000);
 }
