@@ -53,9 +53,17 @@ async function bootstrap() {
     await queryRunner.query(`ALTER TABLE sub_services ADD COLUMN IF NOT EXISTS image1 text;`);
     await queryRunner.query(`ALTER TABLE sub_services ADD COLUMN IF NOT EXISTS image2 text;`);
     await queryRunner.query(`ALTER TABLE sub_services ADD COLUMN IF NOT EXISTS faq jsonb;`);
-    console.log('Database sub_services columns checked and patched successfully.');
+    
+    // Profiles patches
+    await queryRunner.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS shop_image1 text;`);
+    await queryRunner.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS shop_image2 text;`);
+    await queryRunner.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS nid_number text;`);
+    await queryRunner.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS nid_front text;`);
+    await queryRunner.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS nid_back text;`);
+    
+    console.log('Database schema patched successfully.');
   } catch (err) {
-    console.error('Failed to run database sub_services schema patch:', err);
+    console.error('Failed to run database schema patch:', err);
   } finally {
     await queryRunner.release();
   }

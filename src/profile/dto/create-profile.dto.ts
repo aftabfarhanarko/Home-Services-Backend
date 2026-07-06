@@ -28,6 +28,26 @@ export class CreateProfileDto {
   @IsOptional()
   @IsUrl()
   google_map_link?: string;
+
+  @IsOptional()
+  @IsString()
+  shop_image1?: string;
+
+  @IsOptional()
+  @IsString()
+  shop_image2?: string;
+
+  @IsOptional()
+  @IsString()
+  nid_number?: string;
+
+  @IsOptional()
+  @IsString()
+  nid_front?: string;
+
+  @IsOptional()
+  @IsString()
+  nid_back?: string;
   
   @IsOptional()
   @IsNumber()

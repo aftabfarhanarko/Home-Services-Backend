@@ -63,6 +63,21 @@ export class Profile {
   @Column({ type: 'text', nullable: true })
   google_map_link: string;
 
+  @Column({ nullable: true })
+  shop_image1: string;
+
+  @Column({ nullable: true })
+  shop_image2: string;
+
+  @Column({ nullable: true })
+  nid_number: string;
+
+  @Column({ nullable: true })
+  nid_front: string;
+
+  @Column({ nullable: true })
+  nid_back: string;
+
   @ManyToMany(() => Category, { nullable: true, onDelete: 'CASCADE' })
   @JoinTable({
     name: 'profile_categories',
