@@ -26,7 +26,7 @@ export class HelpController {
   @Post('tickets')
   @UseGuards(JwtAuthGuard)
   async createTicket(@Req() req: any, @Body() dto: CreateTicketDto) {
-    const userId = req.user.id;
+    const userId = req.user.sub || req.user.userId || req.user.id;
     const data = await this.helpService.createTicket(userId, dto);
     return {
       success: true,
@@ -37,7 +37,7 @@ export class HelpController {
   @Get('tickets')
   @UseGuards(JwtAuthGuard)
   async getTickets(@Req() req: any) {
-    const userId = req.user.id;
+    const userId = req.user.sub || req.user.userId || req.user.id;
     const data = await this.helpService.getTicketsByUser(userId);
     return {
       success: true,
@@ -48,8 +48,9 @@ export class HelpController {
   @Get('tickets/:id')
   @UseGuards(JwtAuthGuard)
   async getTicketDetails(@Req() req: any, @Param('id') id: string) {
-    const userId = req.user.id;
-    const data = await this.helpService.getTicketById(+id, userId);
+    const userId = req.user.sub || req.user.userId || req.user.id;
+    const userRole = req.user.role;
+    const data = await this.helpService.getTicketById(+id, userId, userRole);
     return {
       success: true,
       data,
@@ -63,7 +64,7 @@ export class HelpController {
     @Param('id') id: string,
     @Body() dto: AddReplyDto,
   ) {
-    const userId = req.user.id;
+    const userId = req.user.sub || req.user.userId || req.user.id;
     const data = await this.helpService.addReply(+id, userId, dto.message);
     return {
       success: true,
@@ -105,7 +106,7 @@ export class HelpController {
     @Param('id') id: string,
     @Body() dto: AddReplyDto,
   ) {
-    const adminUserId = req.user.id;
+    const adminUserId = req.user.sub || req.user.userId || req.user.id;
     const data = await this.helpService.addAdminReply(+id, adminUserId, dto.message);
     return {
       success: true,

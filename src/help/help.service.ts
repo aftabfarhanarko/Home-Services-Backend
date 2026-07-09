@@ -63,9 +63,12 @@ export class HelpService {
     });
   }
 
-  async getTicketById(id: number, userId: number) {
+  async getTicketById(id: number, userId: number, userRole?: string) {
+    const normalizedRole = (userRole || '').toLowerCase().replace(/\s+/g, '');
+    const isSuperAdmin = normalizedRole === 'superadmin';
+
     const ticket = await this.ticketRepository.findOne({
-      where: { id, user: { id: userId } },
+      where: isSuperAdmin ? { id } : { id, user: { id: userId } },
       relations: { user: true },
     });
 
