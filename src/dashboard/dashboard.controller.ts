@@ -19,4 +19,24 @@ export class DashboardController {
       data
     };
   }
+
+  @Get('analytics')
+  @Roles(RoleType.SUPER_ADMIN)
+  async getAnalytics() {
+    const data = await this.dashboardService.getAnalyticsStats();
+    return {
+      success: true,
+      data
+    };
+  }
+
+  @Get('ai-insights')
+  @Roles(RoleType.SUPER_ADMIN)
+  async getAIInsights() {
+    const data = await this.dashboardService.getAIInsights();
+    return {
+      success: true,
+      data
+    };
+  }
 }
