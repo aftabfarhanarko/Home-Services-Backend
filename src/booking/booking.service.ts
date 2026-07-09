@@ -81,8 +81,22 @@ export class BookingService {
       });
       if (pkg) {
         bookingData.pkg = pkg;
-        totalPrice += Number(pkg.price || 0) * bookingQuantity;
+        const durationMonths = createBookingDto.duration_months || 1;
+        totalPrice += Number(pkg.price || 0) * bookingQuantity * durationMonths;
       }
+    }
+
+    if (createBookingDto.duration_months) {
+      bookingData.duration_months = createBookingDto.duration_months;
+      const expireDate = new Date(createBookingDto.date);
+      
+      if (bookingData.pkg && bookingData.pkg.package_type === 'weekly') {
+        expireDate.setDate(expireDate.getDate() + createBookingDto.duration_months * 7);
+      } else {
+        expireDate.setMonth(expireDate.getMonth() + createBookingDto.duration_months);
+      }
+      
+      bookingData.expire_date = expireDate.toISOString().split('T')[0];
     }
 
     bookingData.subtotal = totalPrice;
@@ -335,6 +349,60 @@ export class BookingService {
     );
   }
 
+  private async calculateAndAddEarnings(bookingId: number) {
+    const booking = await this.bookingRepository.findOne({
+      where: { id: bookingId },
+      relations: { vendor: true, agent: true, subServices: true, pkg: true },
+    });
+
+    if (!booking || booking.status !== BookingStatus.COMPLETED) return;
+
+    let totalAgentEarnings = 0;
+    let totalVendorEarnings = 0;
+
+    if (booking.sub_service_items && booking.sub_service_items.length > 0) {
+      for (const item of booking.sub_service_items) {
+        const subService = await this.subServiceRepository.findOne({ where: { id: item.sub_service_id } });
+        if (subService) {
+          const itemTotal = Number(subService.price) * item.quantity;
+          
+          if (subService.agent_commission_percentage) {
+            totalAgentEarnings += itemTotal * (Number(subService.agent_commission_percentage) / 100);
+          }
+          
+          if (subService.vendor_commission_percentage) {
+            totalVendorEarnings += itemTotal * (Number(subService.vendor_commission_percentage) / 100);
+          }
+        }
+      }
+    }
+
+    if (booking.pkg) {
+      const pkg = await this.packageRepository.findOne({ where: { id: booking.pkg.id } });
+      if (pkg) {
+        const pkgTotal = Number(pkg.price || 0) * Number(booking.quantity || 1) * Number(booking.duration_months || 1);
+        
+        if (pkg.agent_commission_percentage) {
+          totalAgentEarnings += pkgTotal * (Number(pkg.agent_commission_percentage) / 100);
+        }
+        
+        if (pkg.vendor_commission_percentage) {
+          totalVendorEarnings += pkgTotal * (Number(pkg.vendor_commission_percentage) / 100);
+        }
+      }
+    }
+
+    if (booking.agent?.id && totalAgentEarnings > 0) {
+      await this.usersService.updateUserWallet(booking.agent.id, totalAgentEarnings);
+      this.logger.log(`Added ৳${totalAgentEarnings} to agent ${booking.agent.id} wallet for booking ${bookingId}`);
+    }
+
+    if (booking.vendor?.id && totalVendorEarnings > 0) {
+      await this.usersService.updateUserWallet(booking.vendor.id, totalVendorEarnings);
+      this.logger.log(`Added ৳${totalVendorEarnings} to vendor ${booking.vendor.id} wallet for booking ${bookingId}`);
+    }
+  }
+
   async findAll(user: any) {
     let whereCondition = {};
 
@@ -427,6 +495,9 @@ export class BookingService {
 
     if (savedBooking.status !== previousStatus) {
       this.sendStatusChangeNotifications(savedBooking.id, savedBooking.status, previousStatus);
+      if (savedBooking.status === BookingStatus.COMPLETED) {
+        await this.calculateAndAddEarnings(savedBooking.id);
+      }
     }
 
     return savedBooking;
@@ -457,6 +528,10 @@ export class BookingService {
     const savedBooking = Array.isArray(saveResult) ? saveResult[0] : saveResult;
 
     this.sendStatusChangeNotifications(savedBooking.id, status, previousStatus);
+
+    if (status === BookingStatus.COMPLETED && previousStatus !== BookingStatus.COMPLETED) {
+      await this.calculateAndAddEarnings(savedBooking.id);
+    }
 
     // In-App Notification for Booking Status Change
     if (status === BookingStatus.COMPLETED) {

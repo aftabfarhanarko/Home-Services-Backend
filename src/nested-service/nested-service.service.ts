@@ -19,6 +19,12 @@ export class NestedServiceService {
       subServices: createNestedServiceDto.sub_services ? createNestedServiceDto.sub_services.map(sub => ({
         name: sub.name,
         price: sub.price,
+        agent_commission_percentage: sub.agent_commission_percentage || 0,
+        vendor_commission_percentage: sub.vendor_commission_percentage || 0,
+        description: sub.description,
+        image1: sub.image1,
+        image2: sub.image2,
+        faq: sub.faq || [],
       })) : [],
     });
     return await this.nestedServiceRepository.save(nestedService);
@@ -65,6 +71,12 @@ export class NestedServiceService {
       nestedService.subServices = updateNestedServiceDto.sub_services.map(sub => ({
         name: sub.name,
         price: sub.price,
+        agent_commission_percentage: sub.agent_commission_percentage || 0,
+        vendor_commission_percentage: sub.vendor_commission_percentage || 0,
+        description: sub.description,
+        image1: sub.image1,
+        image2: sub.image2,
+        faq: sub.faq || [],
       })) as any;
     }
     return await this.nestedServiceRepository.save(nestedService);

@@ -19,6 +19,12 @@ export class SubService {
   @Column({ type: 'text', nullable: true })
   description: string;
 
+  @Column({ type: 'decimal', precision: 5, scale: 2, default: 0 })
+  agent_commission_percentage: number;
+
+  @Column({ type: 'decimal', precision: 5, scale: 2, default: 0 })
+  vendor_commission_percentage: number;
+
   @Column({ nullable: true })
   image1: string;
 

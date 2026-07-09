@@ -24,6 +24,15 @@ export class Package {
   @Column("simple-array", { nullable: true })
   features: string[];
 
+  @Column({ type: 'enum', enum: ['one_time', 'weekly', 'monthly'], default: 'one_time' })
+  package_type: string;
+
+  @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true })
+  agent_commission_percentage: number;
+
+  @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true })
+  vendor_commission_percentage: number;
+
   @OneToMany(() => PackageItem, (item: PackageItem) => item.package, { cascade: true })
   items: PackageItem[];
 

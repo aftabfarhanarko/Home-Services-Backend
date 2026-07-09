@@ -22,5 +22,14 @@ export class CreateNestedServiceDto {
   starting_price?: number;
 
   @IsOptional()
-  sub_services?: { name: string; price: number }[];
+  sub_services?: {
+    name: string;
+    price: number;
+    agent_commission_percentage?: number;
+    vendor_commission_percentage?: number;
+    description?: string;
+    image1?: string;
+    image2?: string;
+    faq?: { question: string; answer: string }[];
+  }[];
 }

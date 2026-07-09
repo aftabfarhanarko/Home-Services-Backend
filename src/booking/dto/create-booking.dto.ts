@@ -62,4 +62,9 @@ export class CreateBookingDto {
   @IsOptional()
   @IsString()
   coupon_code?: string;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  duration_months?: number;
 }

@@ -96,6 +96,12 @@ export class Booking {
   @Column({ type: 'timestamp', nullable: true })
   completedAt: Date;
 
+  @Column({ type: 'int', nullable: true })
+  duration_months: number;
+
+  @Column({ type: 'date', nullable: true })
+  expire_date: string;
+
   @CreateDateColumn()
   createdAt: Date;
 

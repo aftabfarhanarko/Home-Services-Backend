@@ -185,4 +185,10 @@ export class UsersService {
   async markPhoneAsVerified(id: number): Promise<void> {
     await this.userRepository.update(id, { isPhoneVerified: true });
   }
+
+  async updateUserWallet(userId: number, amount: number): Promise<void> {
+    const user = await this.findOne(userId);
+    user.wallet_balance = Number(user.wallet_balance || 0) + Number(amount);
+    await this.userRepository.save(user);
+  }
 }

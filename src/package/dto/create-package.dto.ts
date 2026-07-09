@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsNotEmpty, IsNumber, IsArray } from 'class-validator';
+import { IsString, IsOptional, IsNotEmpty, IsNumber, IsArray, IsEnum } from 'class-validator';
 
 export class CreatePackageDto {
   @IsNotEmpty()
@@ -14,6 +14,10 @@ export class CreatePackageDto {
   description?: string;
 
   @IsOptional()
+  @IsEnum(['one_time', 'weekly', 'monthly'])
+  package_type?: 'one_time' | 'weekly' | 'monthly';
+
+  @IsOptional()
   @IsNumber()
   price?: number;
 
@@ -26,4 +30,12 @@ export class CreatePackageDto {
   @IsArray()
   @IsString({ each: true })
   features?: string[];
+
+  @IsOptional()
+  @IsNumber()
+  agent_commission_percentage?: number;
+
+  @IsOptional()
+  @IsNumber()
+  vendor_commission_percentage?: number;
 }
