@@ -30,18 +30,18 @@ export class PackageService {
     if (user?.role === 'Vendor') {
       return await this.packageRepository.find({
         where: { service: { vendor: { id: user.sub } } },
-        relations: { service: { vendor: true }, items: { nestedService: true } },
+        relations: { service: { vendor: true }, items: { nestedService: true }, bookings: true },
       });
     }
 
     return await this.packageRepository.find({
-      relations: { service: true, items: { nestedService: true } },
+      relations: { service: true, items: { nestedService: true }, bookings: true },
     });
   }
 
   async findAllPublic() {
     const packages = await this.packageRepository.find({
-      relations: { service: { vendor: true }, items: { nestedService: true } },
+      relations: { service: { vendor: true }, items: { nestedService: true }, bookings: true },
     });
 
     const grouped = packages.reduce((acc, pkg) => {
@@ -62,14 +62,14 @@ export class PackageService {
   async findByServiceId(serviceId: number) {
     return await this.packageRepository.find({
       where: { service: { id: serviceId } },
-      relations: { items: { nestedService: true } },
+      relations: { items: { nestedService: true }, bookings: true },
     });
   }
 
   async findOne(id: number) {
     const pkg = await this.packageRepository.findOne({
       where: { id },
-      relations: { service: true, items: { nestedService: true } },
+      relations: { service: true, items: { nestedService: true }, bookings: true },
     });
     if (!pkg) {
       throw new NotFoundException(`Package with ID ${id} not found`);

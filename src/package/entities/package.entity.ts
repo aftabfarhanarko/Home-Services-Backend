@@ -1,6 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
 import { Service } from '../../service/entities/service.entity';
 import { PackageItem } from './package-item.entity';
+import { Booking } from '../../booking/entities/booking.entity';
 
 
 @Entity('packages')
@@ -35,6 +36,9 @@ export class Package {
 
   @OneToMany(() => PackageItem, (item: PackageItem) => item.package, { cascade: true })
   items: PackageItem[];
+
+  @OneToMany(() => Booking, (booking: Booking) => booking.pkg)
+  bookings: Booking[];
 
   @CreateDateColumn()
   createdAt: Date;
