@@ -41,7 +41,7 @@ import { CustomShiftingModule } from './custom-shifting/custom-shifting.module';
         type: 'postgres',
         url: configService.get<string>('DATABASE_URL'),
         autoLoadEntities: true,
-        synchronize: process.env.NODE_ENV !== 'production', // Only sync in dev. In prod use migrations.
+        synchronize: true, // Auto-sync tables in all environments since migrations are not configured
       }),
       inject: [ConfigService],
     }),
