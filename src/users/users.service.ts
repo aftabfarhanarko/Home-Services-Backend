@@ -55,7 +55,16 @@ export class UsersService {
         where: vendorWhere,
         relations: { role: true, profile: USER_PROFILE_RELATIONS, vendor: true, agent: true }
       });
-    } else if (user?.role?.toLowerCase() === 'agent' || user?.role?.toLowerCase() === 'super admin' || user?.role?.toLowerCase() === 'superadmin') {
+    } else if (user?.role?.toLowerCase() === 'agent') {
+      const agentWhere: any = [
+        { id: user.sub, ...whereRole },
+        { agent: { id: user.sub }, ...whereRole }
+      ];
+      return this.userRepository.find({ 
+        where: agentWhere,
+        relations: { role: true, profile: USER_PROFILE_RELATIONS, vendor: true, agent: true } 
+      });
+    } else if (user?.role?.toLowerCase() === 'super admin' || user?.role?.toLowerCase() === 'superadmin') {
       const adminWhere: any = Object.keys(whereRole).length > 0 ? whereRole : undefined;
       return this.userRepository.find({ 
         where: adminWhere,
