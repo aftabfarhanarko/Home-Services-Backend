@@ -49,6 +49,9 @@ export class CustomShifting {
   @JoinColumn({ name: 'vendor_id' })
   vendor: User;
 
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+  price: number;
+
   @CreateDateColumn()
   createdAt: Date;
 

@@ -87,6 +87,17 @@ export class CustomShiftingController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Patch(':id/price')
+  async updatePrice(@Param('id') id: string, @Body('price') price: number) {
+    const data = await this.shiftingService.updatePrice(+id, price);
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Shifting booking price updated successfully',
+      data,
+    };
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
   async remove(@Param('id') id: string) {
     await this.shiftingService.remove(+id);

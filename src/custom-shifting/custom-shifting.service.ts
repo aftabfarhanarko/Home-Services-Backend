@@ -127,6 +127,22 @@ export class CustomShiftingService {
     return this.shiftingRepository.save(booking);
   }
 
+  async updatePrice(id: number, price: number): Promise<CustomShifting> {
+    const booking = await this.findOne(id);
+    booking.price = price;
+    const saved = await this.shiftingRepository.save(booking);
+
+    // Send SMS notification to the client
+    if (booking.phone) {
+      const message =
+        `Rajseba: আপনার কাস্টম শিফটিং বুকিং (ID: ${id}) এর মূল্য নির্ধারণ করা হয়েছে: ৳${price}। ` +
+        `বিস্তারিত জানতে আপনার ড্যাশবোর্ড দেখুন বা আমাদের সাথে যোগাযোগ করুন। ধন্যবাদ!`;
+      this.smsService.sendMessage(booking.phone, message).catch(() => {});
+    }
+
+    return saved;
+  }
+
   async remove(id: number): Promise<void> {
     const booking = await this.findOne(id);
     await this.shiftingRepository.remove(booking);
