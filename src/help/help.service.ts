@@ -58,6 +58,7 @@ export class HelpService {
   async getTicketsByUser(userId: number) {
     return this.ticketRepository.find({
       where: { user: { id: userId } },
+      relations: { user: true },
       order: { createdAt: 'DESC' },
     });
   }
@@ -65,6 +66,7 @@ export class HelpService {
   async getTicketById(id: number, userId: number) {
     const ticket = await this.ticketRepository.findOne({
       where: { id, user: { id: userId } },
+      relations: { user: true },
     });
 
     if (!ticket) {
@@ -77,6 +79,7 @@ export class HelpService {
   async addReply(id: number, userId: number, message: string) {
     const ticket = await this.ticketRepository.findOne({
       where: { id, user: { id: userId } },
+      relations: { user: true },
     });
 
     if (!ticket) {
