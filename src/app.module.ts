@@ -29,6 +29,7 @@ import { NotificationModule } from './notification/notification.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { HeroModule } from './hero/hero.module';
 import { CustomShiftingModule } from './custom-shifting/custom-shifting.module';
+import { HelpModule } from './help/help.module';
 
 @Module({
   imports: [
@@ -77,6 +78,7 @@ import { CustomShiftingModule } from './custom-shifting/custom-shifting.module';
     DashboardModule,
     HeroModule,
     CustomShiftingModule,
+    HelpModule,
   ],
   controllers: [AppController],
   providers: [AppService],
