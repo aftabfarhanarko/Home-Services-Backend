@@ -17,9 +17,9 @@ export class SmsService {
   }
 
   async sendMessage(phone: string, message: string): Promise<boolean> {
-    const apiKey = this.configService.get<string>('SMS_API_KEY') || 'UivVa73bujGUIqNCr6s6';
+    const apiKey = this.configService.get<string>('SMS_API_KEY') || 'C30009696a2fb72e7cc260.50730368';
     const senderId = this.configService.get<string>('SMS_SENDER_ID') || '8809617625025';
-    const baseUrl = 'http://bulksmsbd.net/api/smsapi';
+    const baseUrl = 'https://sms.mram.com.bd/smsapi';
 
     if (!apiKey || !senderId) {
       this.logger.warn('SMS credentials not found. Simulating SMS send.');
@@ -31,7 +31,7 @@ export class SmsService {
       const formattedPhone =
         phone.length === 11 && phone.startsWith('01') ? `88${phone}` : phone;
 
-      const requestUrl = `${baseUrl}?api_key=${apiKey}&type=text&number=${formattedPhone}&senderid=${senderId}&message=${encodeURIComponent(message)}`;
+      const requestUrl = `${baseUrl}?api_key=${apiKey}&type=text&contacts=${formattedPhone}&senderid=${senderId}&msg=${encodeURIComponent(message)}&label=transactional`;
 
       const response = await firstValueFrom(this.httpService.get(requestUrl));
 
