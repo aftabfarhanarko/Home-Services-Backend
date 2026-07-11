@@ -38,7 +38,7 @@ export class UsersService {
     if (createUserDto.roleId) {
       const savedUserWithRole = await this.userRepository.findOne({
         where: { id: savedUser.id },
-        relations: ['role'],
+        relations: { role: true },
       });
       if (savedUserWithRole?.role?.name?.toLowerCase() === 'super admin' || savedUserWithRole?.role?.name?.toLowerCase() === 'superadmin') {
         const message = `You have been added as a Super Admin on Rajseba. You can login using your phone number: ${savedUser.phone}`;
