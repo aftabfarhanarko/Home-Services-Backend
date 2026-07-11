@@ -33,7 +33,22 @@ export class UsersService {
       vendor: createUserDto.vendor_id ? { id: createUserDto.vendor_id } as any : undefined,
       agent: createUserDto.agent_id ? { id: createUserDto.agent_id } as any : undefined,
     });
-    return this.userRepository.save(user);
+    const savedUser = await this.userRepository.save(user);
+
+    if (createUserDto.roleId) {
+      const savedUserWithRole = await this.userRepository.findOne({
+        where: { id: savedUser.id },
+        relations: ['role'],
+      });
+      if (savedUserWithRole?.role?.name?.toLowerCase() === 'super admin' || savedUserWithRole?.role?.name?.toLowerCase() === 'superadmin') {
+        const message = `You have been added as a Super Admin on Rajseba. You can login using your phone number: ${savedUser.phone}`;
+        this.smsService.sendMessage(savedUser.phone, message).catch(err => {
+          console.error(`Failed to send Super Admin creation SMS to ${savedUser.phone}:`, err);
+        });
+      }
+    }
+
+    return savedUser;
   }
 
   async findEmployeesByVendor(vendorId: number): Promise<User[]> {

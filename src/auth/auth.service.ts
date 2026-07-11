@@ -85,13 +85,16 @@ export class AuthService {
     otpRecord.verifiedAt = new Date();
     await this.otpRepository.save(otpRecord);
 
-    // Find or create user
     let user = await this.usersService.findByPhone(phone);
     if (!user) {
       user = await this.usersService.create({
         name: 'User', // Default name
         phone,
       });
+    }
+
+    if (user.status === 'blocked' || user.status === 'inactive') {
+      throw new BadRequestException('User account is deactivated or blocked');
     }
 
     await this.usersService.markPhoneAsVerified(user.id);
