@@ -18,7 +18,7 @@ export class SmsService {
 
   async sendMessage(phone: string, message: string): Promise<boolean> {
     const apiKey = this.configService.get<string>('SMS_API_KEY') || 'C30009696a2fb72e7cc260.50730368';
-    const senderId = this.configService.get<string>('SMS_SENDER_ID') || '8809617625025';
+    const senderId = this.configService.get<string>('SMS_SENDER_ID') || '8809601013613';
     const baseUrl = 'https://sms.mram.com.bd/smsapi';
 
     if (!apiKey || !senderId) {
