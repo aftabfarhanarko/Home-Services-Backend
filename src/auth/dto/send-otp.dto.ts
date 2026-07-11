@@ -4,9 +4,9 @@ import { Transform } from 'class-transformer';
 export class SendOtpDto {
   @IsNotEmpty()
   @IsString()
-  @Transform(({ value }) => value?.match(/^(?:\+88|88)?(01[3-9]\d{8})$/)?.[1] || value)
-  @Matches(/^(?:\+88|88)?(01[3-9]\d{8})$/, {
-    message: 'Phone number must be a valid Bangladeshi number',
+  @Transform(({ value }) => value?.match(/^(?:\+88|88)?(\d{11})$/)?.[1] || value)
+  @Matches(/^(?:\+88|88)?(\d{11})$/, {
+    message: 'Phone number must be exactly 11 digits',
   })
   phone: string;
 }
