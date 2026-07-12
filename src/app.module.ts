@@ -30,6 +30,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { HeroModule } from './hero/hero.module';
 import { CustomShiftingModule } from './custom-shifting/custom-shifting.module';
 import { HelpModule } from './help/help.module';
+import { ManualInvoiceModule } from './manual-invoice/manual-invoice.module';
 
 @Module({
   imports: [
@@ -79,6 +80,7 @@ import { HelpModule } from './help/help.module';
     HeroModule,
     CustomShiftingModule,
     HelpModule,
+    ManualInvoiceModule,
   ],
   controllers: [AppController],
   providers: [AppService],
