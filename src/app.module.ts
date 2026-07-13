@@ -31,6 +31,7 @@ import { HeroModule } from './hero/hero.module';
 import { CustomShiftingModule } from './custom-shifting/custom-shifting.module';
 import { HelpModule } from './help/help.module';
 import { ManualInvoiceModule } from './manual-invoice/manual-invoice.module';
+import { BlogModule } from './blog/blog.module';
 
 @Module({
   imports: [
@@ -81,6 +82,7 @@ import { ManualInvoiceModule } from './manual-invoice/manual-invoice.module';
     CustomShiftingModule,
     HelpModule,
     ManualInvoiceModule,
+    BlogModule,
   ],
   controllers: [AppController],
   providers: [AppService],
