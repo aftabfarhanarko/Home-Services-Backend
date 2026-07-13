@@ -89,7 +89,7 @@ export class ManualInvoice {
   status: string;
 
   @Column({ type: 'timestamp', nullable: true })
-  deletedAt: Date;
+  deletedAt: Date | null;
 
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;

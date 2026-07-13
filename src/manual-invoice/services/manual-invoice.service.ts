@@ -2,7 +2,6 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Not, LessThan } from 'typeorm';
 import { ManualInvoice, PaymentStatus } from '../entities/manual-invoice.entity';
-import { ManualCustomer } from '../entities/manual-customer.entity';
 import { ManualService } from '../entities/manual-service.entity';
 
 @Injectable()
@@ -10,8 +9,6 @@ export class ManualInvoiceService {
   constructor(
     @InjectRepository(ManualInvoice)
     private readonly invoiceRepo: Repository<ManualInvoice>,
-    @InjectRepository(ManualCustomer)
-    private readonly customerRepo: Repository<ManualCustomer>,
     @InjectRepository(ManualService)
     private readonly serviceRepo: Repository<ManualService>,
   ) {}
@@ -80,26 +77,6 @@ export class ManualInvoiceService {
 
     if (!invoiceNumber || !customer || !items || items.length === 0 || !amountInWords) {
       throw new BadRequestException('Invoice number, customer, items, and amount in words are required');
-    }
-
-    // 1. Dynamic Customer Upsert
-    if (customer.name && customer.phone && customer.address) {
-      const phoneTrim = customer.phone.trim();
-      const existingCustomer = await this.customerRepo.findOne({ where: { phone: phoneTrim } });
-      if (existingCustomer) {
-        existingCustomer.name = customer.name.trim();
-        existingCustomer.email = customer.email ? customer.email.trim() : '';
-        existingCustomer.address = customer.address.trim();
-        await this.customerRepo.save(existingCustomer);
-      } else {
-        const newCustomer = this.customerRepo.create({
-          name: customer.name.trim(),
-          phone: phoneTrim,
-          email: customer.email ? customer.email.trim() : '',
-          address: customer.address.trim(),
-        });
-        await this.customerRepo.save(newCustomer);
-      }
     }
 
     // 2. Dynamic Service Upsert
@@ -209,48 +186,6 @@ export class ManualInvoiceService {
     return await this.invoiceRepo.save(invoice);
   }
 
-  // ==========================================
-  // CUSTOMER SERVICE METHODS
-  // ==========================================
-
-  async findAllCustomers(): Promise<ManualCustomer[]> {
-    return await this.customerRepo.find({
-      order: { name: 'ASC' },
-    });
-  }
-
-  async createOrUpdateCustomer(dto: any): Promise<ManualCustomer> {
-    const { name, phone, email, address } = dto;
-    if (!name || !phone || !address) {
-      throw new BadRequestException('Name, phone, and address are required');
-    }
-
-    const phoneTrim = phone.trim();
-    let customer = await this.customerRepo.findOne({ where: { phone: phoneTrim } });
-    if (customer) {
-      customer.name = name.trim();
-      customer.email = email ? email.trim() : '';
-      customer.address = address.trim();
-      return await this.customerRepo.save(customer);
-    } else {
-      customer = this.customerRepo.create({
-        name: name.trim(),
-        phone: phoneTrim,
-        email: email ? email.trim() : '',
-        address: address.trim(),
-      });
-      return await this.customerRepo.save(customer);
-    }
-  }
-
-  async deleteCustomer(id: number): Promise<{ message: string }> {
-    const customer = await this.customerRepo.findOne({ where: { id } });
-    if (!customer) {
-      throw new NotFoundException(`Customer with ID ${id} not found`);
-    }
-    await this.customerRepo.remove(customer);
-    return { message: 'Customer deleted successfully' };
-  }
 
   // ==========================================
   // SERVICE SERVICE METHODS
