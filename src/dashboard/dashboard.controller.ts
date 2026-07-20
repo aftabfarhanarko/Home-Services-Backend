@@ -22,9 +22,8 @@ export class DashboardController {
 
   @Get('analytics')
   @Roles(RoleType.SUPER_ADMIN, RoleType.EMPLOYEE)
-  async getAnalytics(@Query('days') days?: string) {
-    const daysNum = days ? parseInt(days, 10) : 30;
-    const data = await this.dashboardService.getAnalyticsStats(daysNum);
+  async getAnalytics() {
+    const data = await this.dashboardService.getAnalyticsStats();
     return {
       success: true,
       data
