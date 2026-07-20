@@ -99,11 +99,23 @@ export class ServiceService {
     }
 
     if (params.q?.trim()) {
-      const term = `%${params.q.trim().toLowerCase()}%`;
-      qb.andWhere(
-        '(LOWER(service.name) LIKE :term OR LOWER(service.subtitle) LIKE :term OR LOWER(service.description) LIKE :term)',
-        { term },
-      );
+      const words = params.q
+        .trim()
+        .toLowerCase()
+        .split(/\s+/)
+        .filter((word) => word.length > 0);
+
+      words.forEach((word, index) => {
+        const paramName = `word_${index}`;
+        const term = `%${word}%`;
+        qb.andWhere(
+          `(LOWER(service.name) LIKE :${paramName} OR ` +
+            `LOWER(service.subtitle) LIKE :${paramName} OR ` +
+            `LOWER(service.description) LIKE :${paramName} OR ` +
+            `LOWER(category.name) LIKE :${paramName})`,
+          { [paramName]: term },
+        );
+      });
     }
 
     const services = await qb.orderBy('service.createdAt', 'DESC').getMany();
