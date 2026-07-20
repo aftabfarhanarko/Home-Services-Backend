@@ -11,7 +11,7 @@ export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
 
   @Get('overview')
-  @Roles(RoleType.SUPER_ADMIN, RoleType.VENDOR, RoleType.AGENT, RoleType.CLIENT)
+  @Roles(RoleType.SUPER_ADMIN, RoleType.VENDOR, RoleType.AGENT, RoleType.CLIENT, RoleType.EMPLOYEE)
   async getOverview(@Req() req: any) {
     const data = await this.dashboardService.getOverviewStats();
     return {
@@ -21,7 +21,7 @@ export class DashboardController {
   }
 
   @Get('analytics')
-  @Roles(RoleType.SUPER_ADMIN)
+  @Roles(RoleType.SUPER_ADMIN, RoleType.EMPLOYEE)
   async getAnalytics(@Query('days') days?: string) {
     const daysNum = days ? parseInt(days, 10) : 30;
     const data = await this.dashboardService.getAnalyticsStats(daysNum);
@@ -32,7 +32,7 @@ export class DashboardController {
   }
 
   @Get('ai-insights')
-  @Roles(RoleType.SUPER_ADMIN)
+  @Roles(RoleType.SUPER_ADMIN, RoleType.EMPLOYEE)
   async getAIInsights() {
     const data = await this.dashboardService.getAIInsights();
     return {
