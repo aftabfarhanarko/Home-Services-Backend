@@ -9,8 +9,10 @@ import { Role } from '../roles/entities/role.entity';
 import { Category } from '../category/entities/category.entity';
 import { Review } from '../review/entities/review.entity';
 
+import { Service } from '../service/entities/service.entity';
+
 @Module({
-  imports: [TypeOrmModule.forFeature([Booking, User, Withdraw, Role, Category, Review])],
+  imports: [TypeOrmModule.forFeature([Booking, User, Withdraw, Role, Category, Review, Service])],
   controllers: [DashboardController],
   providers: [DashboardService],
 })

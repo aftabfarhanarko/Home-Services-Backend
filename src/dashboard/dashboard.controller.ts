@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, UseGuards, Req, Query } from '@nestjs/common';
 import { DashboardService } from './dashboard.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../roles/guards/roles.guard';
@@ -22,8 +22,9 @@ export class DashboardController {
 
   @Get('analytics')
   @Roles(RoleType.SUPER_ADMIN)
-  async getAnalytics() {
-    const data = await this.dashboardService.getAnalyticsStats();
+  async getAnalytics(@Query('days') days?: string) {
+    const daysNum = days ? parseInt(days, 10) : 30;
+    const data = await this.dashboardService.getAnalyticsStats(daysNum);
     return {
       success: true,
       data
