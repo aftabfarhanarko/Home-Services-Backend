@@ -5,6 +5,7 @@ import { CreatePackageDto } from './dto/create-package.dto';
 import { UpdatePackageDto } from './dto/update-package.dto';
 import { Package } from './entities/package.entity';
 import { PackageItem } from './entities/package-item.entity';
+import { BookingStatus } from '../booking/entities/booking.entity';
 
 @Injectable()
 export class PackageService {
@@ -27,21 +28,36 @@ export class PackageService {
   }
 
   async findAll(user?: any) {
+    let packages: Package[];
     if (user?.role === 'Vendor') {
-      return await this.packageRepository.find({
+      packages = await this.packageRepository.find({
         where: { service: { vendor: { id: user.sub } } },
         relations: { service: { vendor: true }, items: { nestedService: true }, bookings: true },
       });
+    } else {
+      packages = await this.packageRepository.find({
+        relations: { service: true, items: { nestedService: true }, bookings: true },
+      });
     }
 
-    return await this.packageRepository.find({
-      relations: { service: true, items: { nestedService: true }, bookings: true },
+    packages.forEach(p => {
+      if (p.bookings) {
+        p.bookings = p.bookings.filter(b => b.status === BookingStatus.COMPLETED);
+      }
     });
+
+    return packages;
   }
 
   async findAllPublic() {
     const packages = await this.packageRepository.find({
       relations: { service: { vendor: true }, items: { nestedService: true }, bookings: true },
+    });
+
+    packages.forEach(p => {
+      if (p.bookings) {
+        p.bookings = p.bookings.filter(b => b.status === BookingStatus.COMPLETED);
+      }
     });
 
     const grouped = packages.reduce((acc, pkg) => {
@@ -60,10 +76,16 @@ export class PackageService {
   }
 
   async findByServiceId(serviceId: number) {
-    return await this.packageRepository.find({
+    const packages = await this.packageRepository.find({
       where: { service: { id: serviceId } },
       relations: { items: { nestedService: true }, bookings: true },
     });
+    packages.forEach(p => {
+      if (p.bookings) {
+        p.bookings = p.bookings.filter(b => b.status === BookingStatus.COMPLETED);
+      }
+    });
+    return packages;
   }
 
   async findOne(id: number) {
@@ -73,6 +95,9 @@ export class PackageService {
     });
     if (!pkg) {
       throw new NotFoundException(`Package with ID ${id} not found`);
+    }
+    if (pkg.bookings) {
+      pkg.bookings = pkg.bookings.filter(b => b.status === BookingStatus.COMPLETED);
     }
     return pkg;
   }
