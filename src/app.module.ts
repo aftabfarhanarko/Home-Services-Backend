@@ -32,6 +32,7 @@ import { CustomShiftingModule } from './custom-shifting/custom-shifting.module';
 import { HelpModule } from './help/help.module';
 import { ManualInvoiceModule } from './manual-invoice/manual-invoice.module';
 import { BlogModule } from './blog/blog.module';
+import { CustomRequestModule } from './custom-request/custom-request.module';
 
 @Module({
   imports: [
@@ -83,6 +84,7 @@ import { BlogModule } from './blog/blog.module';
     HelpModule,
     ManualInvoiceModule,
     BlogModule,
+    CustomRequestModule,
   ],
   controllers: [AppController],
   providers: [AppService],
