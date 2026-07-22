@@ -12,7 +12,7 @@ describe('HeroService', () => {
     find: jest.fn(),
     findOne: jest.fn(),
     preload: jest.fn(),
-    softDelete: jest.fn(),
+    delete: jest.fn(),
   };
 
   beforeEach(async () => {

@@ -102,7 +102,7 @@ export class CouponService {
   }
 
   async remove(id: number): Promise<void> {
-    const result = await this.couponRepository.softDelete(id);
+    const result = await this.couponRepository.delete(id);
     if (result.affected === 0) {
       throw new NotFoundException(`Coupon with ID ${id} not found`);
     }

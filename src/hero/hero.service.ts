@@ -47,7 +47,7 @@ export class HeroService {
   }
 
   async remove(id: number): Promise<void> {
-    const result = await this.heroRepository.softDelete(id);
+    const result = await this.heroRepository.delete(id);
     if (result.affected === 0) {
       throw new NotFoundException(`Hero with ID ${id} not found`);
     }
