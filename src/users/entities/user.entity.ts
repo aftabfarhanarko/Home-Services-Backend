@@ -33,7 +33,7 @@ export class User {
   @OneToOne(() => Profile, profile => profile.user)
   profile: Profile;
 
-  @ManyToOne(() => User, user => user.employees, { nullable: true })
+  @ManyToOne(() => User, user => user.employees, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'vendor_id' })
   vendor: User;
 

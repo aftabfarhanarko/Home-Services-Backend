@@ -26,7 +26,7 @@ export class Notification {
   @Column({ default: false })
   isRead: boolean;
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'userId' })
   user: User;
 
