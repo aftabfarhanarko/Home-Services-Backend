@@ -54,4 +54,10 @@ export class ManualInvoiceController {
   async updatePayment(@Param('id') id: string, @Body('amountPaid') amountPaid: number) {
     return await this.manualInvoiceService.updatePayment(+id, amountPaid);
   }
+
+  // PUT /api/manual-invoices/:id — update invoice (items, discount, customer, etc.)
+  @Put(':id')
+  async update(@Param('id') id: string, @Body() body: any) {
+    return await this.manualInvoiceService.updateInvoice(+id, body);
+  }
 }

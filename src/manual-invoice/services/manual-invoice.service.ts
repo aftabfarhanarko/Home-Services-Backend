@@ -119,9 +119,11 @@ export class ManualInvoiceService {
         rate: Number(item.rate),
         amount: Number(item.amount || item.qty * item.rate),
       })),
-      totalAmount: Number(totalAmount || items.reduce((acc: number, curr: any) => acc + curr.qty * curr.rate, 0)),
-      discount: Number(discount || 0),
-      totalPayableAmount: Number(totalPayableAmount || items.reduce((acc: number, curr: any) => acc + curr.qty * curr.rate, 0)),
+      totalAmount: Number(totalAmount !== undefined && totalAmount !== null ? totalAmount : items.reduce((acc: number, curr: any) => acc + curr.qty * curr.rate, 0)),
+      discount: (discount !== undefined && discount !== null && discount !== '') ? Number(discount) : 0,
+      totalPayableAmount: totalPayableAmount !== undefined && totalPayableAmount !== null
+        ? Number(totalPayableAmount)
+        : Math.max(0, Number(totalAmount || 0) - Number(discount || 0)),
       amountInWords: amountInWords.trim(),
       templateName: templateName || 'template1',
       paymentOptions: paymentOptions || {
@@ -134,7 +136,9 @@ export class ManualInvoiceService {
       signeeName: signeeName ? signeeName.trim() : 'Ariful Islam Arif',
       signeeRole: signeeRole ? signeeRole.trim() : 'CEO, Rajseba Design Studio',
       paidAmount: Number(paidAmount) || 0,
-      dueAmount: Number(dueAmount) || 0,
+      dueAmount: dueAmount !== undefined && dueAmount !== null
+        ? Number(dueAmount)
+        : Math.max(0, (totalPayableAmount !== undefined ? Number(totalPayableAmount) : 0) - (Number(paidAmount) || 0)),
       paymentStatus: paymentStatus || PaymentStatus.DUE,
       status: 'active',
     });
@@ -173,7 +177,8 @@ export class ManualInvoiceService {
     }
 
     const currentPaid = Number(invoice.paidAmount || 0);
-    const total = Number(invoice.totalPayableAmount || invoice.totalAmount);
+    // Always use totalPayableAmount (post-discount) as the source of truth
+    const total = Number(invoice.totalPayableAmount);
 
     const newPaid = Math.min(total, currentPaid + paymentValue);
     const newDue = Math.max(0, total - newPaid);
@@ -182,6 +187,88 @@ export class ManualInvoiceService {
     invoice.paidAmount = newPaid;
     invoice.dueAmount = newDue;
     invoice.paymentStatus = newStatus;
+
+    return await this.invoiceRepo.save(invoice);
+  }
+
+  async updateInvoice(id: number, dto: any): Promise<ManualInvoice> {
+    const invoice = await this.findOneInvoice(id);
+    const {
+      invoiceNumber,
+      date,
+      customer,
+      items,
+      totalAmount,
+      discount,
+      totalPayableAmount,
+      amountInWords,
+      templateName,
+      paymentOptions,
+      signeeName,
+      signeeRole,
+      paidAmount,
+      dueAmount,
+      paymentStatus,
+    } = dto;
+
+    // Update fields only if provided
+    if (invoiceNumber !== undefined) {
+      const trimmed = invoiceNumber.trim();
+      if (trimmed !== invoice.invoiceNumber) {
+        const conflict = await this.invoiceRepo.findOne({ where: { invoiceNumber: trimmed } });
+        if (conflict) throw new BadRequestException(`Invoice number "${trimmed}" already exists.`);
+        invoice.invoiceNumber = trimmed;
+      }
+    }
+    if (date !== undefined) invoice.date = new Date(date);
+    if (customer !== undefined) {
+      invoice.customer = {
+        name: customer.name.trim(),
+        phone: customer.phone.trim(),
+        email: customer.email ? customer.email.trim() : '',
+        address: customer.address.trim(),
+      };
+    }
+    if (items !== undefined) {
+      invoice.items = items.map((item: any) => ({
+        description: item.description.trim(),
+        qty: Number(item.qty),
+        rate: Number(item.rate),
+        amount: Number(item.amount || item.qty * item.rate),
+      }));
+    }
+
+    // Recalculate financials
+    const subtotal = totalAmount !== undefined && totalAmount !== null
+      ? Number(totalAmount)
+      : invoice.items.reduce((acc: number, i: any) => acc + i.amount, 0);
+
+    const discountVal = (discount !== undefined && discount !== null && discount !== '')
+      ? Number(discount)
+      : Number(invoice.discount || 0);
+
+    const payable = totalPayableAmount !== undefined && totalPayableAmount !== null
+      ? Number(totalPayableAmount)
+      : Math.max(0, subtotal - discountVal);
+
+    const paid = paidAmount !== undefined ? Number(paidAmount) : Number(invoice.paidAmount || 0);
+    const due = dueAmount !== undefined && dueAmount !== null
+      ? Number(dueAmount)
+      : Math.max(0, payable - paid);
+
+    invoice.totalAmount = subtotal;
+    invoice.discount = discountVal;
+    invoice.totalPayableAmount = payable;
+    invoice.paidAmount = paid;
+    invoice.dueAmount = due;
+    invoice.paymentStatus = due === 0 ? PaymentStatus.PAID : PaymentStatus.DUE;
+
+    if (amountInWords !== undefined) invoice.amountInWords = amountInWords.trim();
+    if (templateName !== undefined) invoice.templateName = templateName;
+    if (paymentOptions !== undefined) invoice.paymentOptions = paymentOptions;
+    if (signeeName !== undefined) invoice.signeeName = signeeName.trim();
+    if (signeeRole !== undefined) invoice.signeeRole = signeeRole.trim();
+    if (paymentStatus !== undefined) invoice.paymentStatus = paymentStatus;
 
     return await this.invoiceRepo.save(invoice);
   }
