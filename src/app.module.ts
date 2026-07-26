@@ -34,6 +34,7 @@ import { ManualInvoiceModule } from './manual-invoice/manual-invoice.module';
 import { BlogModule } from './blog/blog.module';
 import { CustomRequestModule } from './custom-request/custom-request.module';
 import { CompanyBrandingModule } from './company-branding/company-branding.module';
+import { UploadModule } from './upload/upload.module';
 
 @Module({
   imports: [
@@ -87,6 +88,7 @@ import { CompanyBrandingModule } from './company-branding/company-branding.modul
     BlogModule,
     CustomRequestModule,
     CompanyBrandingModule,
+    UploadModule,
   ],
   controllers: [AppController],
   providers: [AppService],

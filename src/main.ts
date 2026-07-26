@@ -7,11 +7,19 @@ import { DataSource } from 'typeorm';
 import { AppModule } from './app.module';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 
+import { join } from 'path';
+import { NestExpressApplication } from '@nestjs/platform-express';
+
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  // Serve static uploaded files
+  app.useStaticAssets(join(process.cwd(), 'uploads'), {
+    prefix: '/uploads',
+  });
 
   // Enable Security Headers
-  app.use(helmet());
+  app.use(helmet({ crossOriginResourcePolicy: false }));
 
   // Enable Compression (Gzip) for faster API responses
   app.use(compression());
