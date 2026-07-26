@@ -23,6 +23,9 @@ export class CompanyBrandingService {
         id: existing[0].id,
         ...dto,
       });
+      if (!updated) {
+        throw new NotFoundException('Company branding entity not found');
+      }
       return this.brandingRepository.save(updated);
     }
 
