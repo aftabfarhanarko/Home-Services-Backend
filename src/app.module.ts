@@ -48,6 +48,11 @@ import { UploadModule } from './upload/upload.module';
         url: configService.get<string>('DATABASE_URL'),
         autoLoadEntities: true,
         synchronize: true, // Auto-sync tables in all environments since migrations are not configured
+        extra: {
+          max: 20, // Maximum connections in pool
+          idleTimeoutMillis: 30000,
+          connectionTimeoutMillis: 5000,
+        },
       }),
       inject: [ConfigService],
     }),
