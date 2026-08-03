@@ -14,11 +14,28 @@ let appInstance: any;
 
 async function bootstrap() {
   if (!isAppInitialized) {
+    // Required to prevent serving assets synchronously in serverless without a directory
+    const expressAdapter = new (require('@nestjs/platform-express').ExpressAdapter)(server);
+    
     appInstance = await NestFactory.create<NestExpressApplication>(
       AppModule,
-      new (require('@nestjs/platform-express').ExpressAdapter)(server),
+      expressAdapter,
       { logger: ['error', 'warn', 'log'] }
     );
+
+    // Disable static assets in serverless mode if directory doesn't exist, else wrap it
+    try {
+      const fs = require('fs');
+      const path = require('path');
+      const uploadsDir = path.join(process.cwd(), 'uploads');
+      if (fs.existsSync(uploadsDir)) {
+        appInstance.useStaticAssets(uploadsDir, {
+          prefix: '/uploads',
+        });
+      }
+    } catch (e) {
+      console.warn('Skipping static assets initialization:', e.message);
+    }
 
     // Enable Security Headers
     appInstance.use(helmet({ crossOriginResourcePolicy: false }));
@@ -71,6 +88,16 @@ if (!process.env.VERCEL) {
 }
 
 export default async function handler(req: any, res: any) {
-  await bootstrap();
-  server(req, res);
+  try {
+    await bootstrap();
+    server(req, res);
+  } catch (error) {
+    console.error('Vercel Serverless Function Crash:', error);
+    res.status(500).json({
+      statusCode: 500,
+      message: 'Serverless Function Invocation Failed',
+      error: error?.message || String(error),
+      stack: process.env.NODE_ENV !== 'production' ? error?.stack : undefined,
+    });
+  }
 }
