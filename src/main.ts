@@ -10,14 +10,16 @@ import { GlobalExceptionFilter } from './common/filters/global-exception.filter'
 import { join } from 'path';
 import { NestExpressApplication } from '@nestjs/platform-express';
 
-let appInstance: any;
+let cachedServer: any;
 
 export async function bootstrapServer() {
-  if (appInstance) {
-    return appInstance;
+  if (cachedServer) {
+    return cachedServer;
   }
 
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    logger: ['error', 'warn', 'log'],
+  });
 
   // Serve static uploaded files
   app.useStaticAssets(join(process.cwd(), 'uploads'), {
@@ -32,7 +34,7 @@ export async function bootstrapServer() {
 
   // Enable CORS
   app.enableCors({
-    origin: ['http://localhost:3000', 'https://rajseba-phi.vercel.app', 'https://rajsheba.jevxo.com', 'https://www.rajseba.com'],
+    origin: true,
     credentials: true,
   });
 
@@ -50,53 +52,29 @@ export async function bootstrapServer() {
 
   // Setup Swagger for Hoppscotch / API docs
   const config = new DocumentBuilder()
-    .setTitle('API')
-    .setDescription('The API description')
+    .setTitle('Rajseba API')
+    .setDescription('Rajseba Backend API Services')
     .setVersion('1.0')
     .addBearerAuth()
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, documentFactory);
 
-  // Run Database Patches to ensure new columns exist in production without migrations
-  try {
-    const dataSource = app.get(DataSource);
-    if (dataSource && dataSource.isInitialized) {
-      const queryRunner = dataSource.createQueryRunner();
-      await queryRunner.connect();
-      try {
-        await queryRunner.query(`ALTER TABLE sub_services ADD COLUMN IF NOT EXISTS description text;`);
-        await queryRunner.query(`ALTER TABLE sub_services ADD COLUMN IF NOT EXISTS image1 text;`);
-        await queryRunner.query(`ALTER TABLE sub_services ADD COLUMN IF NOT EXISTS image2 text;`);
-        await queryRunner.query(`ALTER TABLE sub_services ADD COLUMN IF NOT EXISTS faq jsonb;`);
-        
-        // Profiles patches
-        await queryRunner.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS shop_image1 text;`);
-        await queryRunner.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS shop_image2 text;`);
-        await queryRunner.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS nid_number text;`);
-        await queryRunner.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS nid_front text;`);
-        await queryRunner.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS nid_back text;`);
-        await queryRunner.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS area_name text;`);
-      } catch (patchErr) {
-        console.error('Database schema patch failed silently:', patchErr);
-      } finally {
-        await queryRunner.release();
-      }
-    }
-  } catch (err) {
-    console.error('Failed to run database schema patch:', err);
-  }
-
   await app.init();
-  appInstance = app.getHttpServer();
-  return appInstance;
+  cachedServer = app.getHttpAdapter().getInstance();
+  return cachedServer;
 }
 
 // Local dev listener
 if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
   bootstrapServer().then(() => {
     const port = process.env.PORT || 8000;
-    appInstance?.listen?.(port);
+    const server = cachedServer;
+    if (server && typeof server.listen === 'function') {
+      server.listen(port, () => {
+        console.log(`Server is running locally on port ${port}`);
+      });
+    }
   });
 }
 
