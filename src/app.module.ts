@@ -48,21 +48,23 @@ import { UploadModule } from './upload/upload.module';
         url: configService.get<string>('DATABASE_URL'),
         autoLoadEntities: true,
         synchronize: true, // Auto-sync tables in all environments since migrations are not configured
+        logging: false, // Turn off DB logging in performance mode
         extra: {
-          max: 20, // Maximum connections in pool
-          idleTimeoutMillis: 30000,
-          connectionTimeoutMillis: 5000,
+          max: 30, // Increase max connection pool size for faster concurrent queries
+          idleTimeoutMillis: 10000, // Faster idle cleanup
+          connectionTimeoutMillis: 3000, // Quick timeout on stuck connections
         },
       }),
       inject: [ConfigService],
     }),
     ThrottlerModule.forRoot([{
       ttl: 60000,
-      limit: 30, // Increased limit for production
+      limit: 120, // High rate limit to avoid slowing down API responses
     }]),
     CacheModule.register({
       isGlobal: true,
-      ttl: 60000, // cache for 60 seconds by default
+      ttl: 300000, // Increase cache TTL to 5 minutes for faster data delivery
+      max: 500, // Limit maximum cached items in memory
     }),
     UsersModule,
     AuthModule,
