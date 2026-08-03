@@ -3,18 +3,17 @@ import compression from 'compression';
 import helmet from 'helmet';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { DataSource } from 'typeorm';
 import { AppModule } from './app.module';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 
 import { join } from 'path';
 import { NestExpressApplication } from '@nestjs/platform-express';
 
-let cachedServer: any;
+let expressApp: any;
 
-export async function bootstrapServer() {
-  if (cachedServer) {
-    return cachedServer;
+async function createExpressApp() {
+  if (expressApp) {
+    return expressApp;
   }
 
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -29,8 +28,8 @@ export async function bootstrapServer() {
   // Enable Security Headers
   app.use(helmet({ crossOriginResourcePolicy: false }));
 
-  // Enable Compression (Gzip level 6) for maximum response speed & low memory overhead
-  app.use(compression({ level: 6, threshold: 512 }));
+  // Enable Compression
+  app.use(compression());
 
   // Enable CORS
   app.enableCors({
@@ -47,10 +46,10 @@ export async function bootstrapServer() {
     }),
   );
 
-  // Enable Global Exception Filter for professional formatting
+  // Enable Global Exception Filter
   app.useGlobalFilters(new GlobalExceptionFilter());
 
-  // Setup Swagger for Hoppscotch / API docs
+  // Setup Swagger
   const config = new DocumentBuilder()
     .setTitle('Rajseba API')
     .setDescription('Rajseba Backend API Services')
@@ -61,24 +60,33 @@ export async function bootstrapServer() {
   SwaggerModule.setup('api/docs', app, documentFactory);
 
   await app.init();
-  cachedServer = app.getHttpAdapter().getInstance();
-  return cachedServer;
+  expressApp = app.getHttpAdapter().getInstance();
+  return expressApp;
 }
 
-// Local dev listener
-if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
-  bootstrapServer().then(() => {
+// Local standalone listener
+if (!process.env.VERCEL) {
+  createExpressApp().then((server) => {
     const port = process.env.PORT || 8000;
-    const server = cachedServer;
-    if (server && typeof server.listen === 'function') {
+    if (typeof server.listen === 'function') {
       server.listen(port, () => {
-        console.log(`Server is running locally on port ${port}`);
+        console.log(`Server running locally on port ${port}`);
       });
     }
   });
 }
 
-export default async function handler(req: any, res: any) {
-  const server = await bootstrapServer();
-  return server(req, res);
-}
+// Vercel Serverless Function entrypoint
+export default async (req: any, res: any) => {
+  try {
+    const app = await createExpressApp();
+    return app(req, res);
+  } catch (error) {
+    console.error('Vercel Serverless Handler Error:', error);
+    res.status(500).json({
+      statusCode: 500,
+      message: 'Internal Server Error',
+      error: error?.message || String(error),
+    });
+  }
+};
