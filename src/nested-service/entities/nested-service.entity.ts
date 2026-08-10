@@ -26,6 +26,9 @@ export class NestedService {
   @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
   starting_price: number;
 
+  @Column({ type: 'boolean', default: false })
+  is_contact_for_price: boolean;
+
   @OneToMany(() => SubService, subService => subService.nestedService, { cascade: true })
   subServices: SubService[];
 

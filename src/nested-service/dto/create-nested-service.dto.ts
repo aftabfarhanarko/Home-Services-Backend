@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsUrl, IsNotEmpty, IsNumber } from 'class-validator';
+import { IsString, IsOptional, IsUrl, IsNotEmpty, IsNumber, IsBoolean } from 'class-validator';
 
 export class CreateNestedServiceDto {
   @IsNotEmpty()
@@ -22,9 +22,14 @@ export class CreateNestedServiceDto {
   starting_price?: number;
 
   @IsOptional()
+  @IsBoolean()
+  is_contact_for_price?: boolean;
+
+  @IsOptional()
   sub_services?: {
     name: string;
     price: number;
+    is_contact_for_price?: boolean;
     agent_commission_percentage?: number;
     vendor_commission_percentage?: number;
     description?: string;

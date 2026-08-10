@@ -16,9 +16,11 @@ export class NestedServiceService {
     const nestedService = this.nestedServiceRepository.create({
       ...createNestedServiceDto,
       service: { id: createNestedServiceDto.service_id },
+      is_contact_for_price: !!createNestedServiceDto.is_contact_for_price,
       subServices: createNestedServiceDto.sub_services ? createNestedServiceDto.sub_services.map(sub => ({
         name: sub.name,
         price: sub.price,
+        is_contact_for_price: !!sub.is_contact_for_price,
         agent_commission_percentage: sub.agent_commission_percentage || 0,
         vendor_commission_percentage: sub.vendor_commission_percentage || 0,
         description: sub.description,
@@ -67,10 +69,14 @@ export class NestedServiceService {
       nestedService.service = { id: updateNestedServiceDto.service_id } as any;
     }
     Object.assign(nestedService, updateNestedServiceDto);
+    if (updateNestedServiceDto.is_contact_for_price !== undefined) {
+      nestedService.is_contact_for_price = !!updateNestedServiceDto.is_contact_for_price;
+    }
     if (updateNestedServiceDto.sub_services) {
       nestedService.subServices = updateNestedServiceDto.sub_services.map(sub => ({
         name: sub.name,
         price: sub.price,
+        is_contact_for_price: !!sub.is_contact_for_price,
         agent_commission_percentage: sub.agent_commission_percentage || 0,
         vendor_commission_percentage: sub.vendor_commission_percentage || 0,
         description: sub.description,

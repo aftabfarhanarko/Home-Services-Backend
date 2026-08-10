@@ -16,6 +16,9 @@ export class SubService {
   @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
   price: number;
 
+  @Column({ type: 'boolean', default: false })
+  is_contact_for_price: boolean;
+
   @Column({ type: 'text', nullable: true })
   description: string;
 
