@@ -114,7 +114,9 @@ export class ManualInvoiceService {
         address: customer.address.trim(),
       },
       items: items.map((item: any) => ({
-        description: item.description.trim(),
+        serviceName: item.serviceName ? String(item.serviceName).trim() : '',
+        description: item.description ? item.description.trim() : '',
+        inceFit: item.inceFit ? String(item.inceFit).trim() : '',
         qty: Number(item.qty),
         rate: Number(item.rate),
         amount: Number(item.amount || item.qty * item.rate),
@@ -231,7 +233,9 @@ export class ManualInvoiceService {
     }
     if (items !== undefined) {
       invoice.items = items.map((item: any) => ({
-        description: item.description.trim(),
+        serviceName: item.serviceName ? String(item.serviceName).trim() : '',
+        description: item.description ? item.description.trim() : '',
+        inceFit: item.inceFit ? String(item.inceFit).trim() : '',
         qty: Number(item.qty),
         rate: Number(item.rate),
         amount: Number(item.amount || item.qty * item.rate),

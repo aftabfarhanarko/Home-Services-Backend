@@ -32,7 +32,9 @@ export class ManualInvoice {
 
   @Column({ type: 'jsonb' })
   items: {
+    serviceName?: string;
     description: string;
+    inceFit?: string;
     qty: number;
     rate: number;
     amount: number;
