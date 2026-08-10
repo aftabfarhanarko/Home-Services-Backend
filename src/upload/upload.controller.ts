@@ -43,7 +43,7 @@ export class UploadController {
     }
     
     // Build full image URL
-    const host = process.env.APP_URL || 'https://api.rajseba.com';
+    const host = process.env.APP_URL || 'http://r9m77f0yp91zaqi9xf0jqc9h.200.141.14.181.sslip.io';
     const url = `${host}/uploads/${file.filename}`;
 
     return {
