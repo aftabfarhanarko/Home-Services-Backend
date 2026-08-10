@@ -19,6 +19,7 @@ export class CustomRequestService {
       name: createDto.name,
       phone: createDto.phone,
       email: createDto.email,
+      location: createDto.location,
       title: createDto.title,
       description: createDto.description,
       status: CustomRequestStatus.PENDING,

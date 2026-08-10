@@ -15,6 +15,10 @@ export class CreateCustomRequestDto {
 
   @IsString()
   @IsOptional()
+  location?: string;
+
+  @IsString()
+  @IsOptional()
   title?: string;
 
   @IsString()

@@ -23,6 +23,9 @@ export class CustomRequest {
   email: string;
 
   @Column({ nullable: true })
+  location: string;
+
+  @Column({ nullable: true })
   title: string; // Category name or custom service title
 
   @Column({ type: 'text' })
