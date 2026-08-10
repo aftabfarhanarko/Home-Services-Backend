@@ -1,4 +1,43 @@
-import { IsString, IsOptional, IsUrl, IsNotEmpty, IsNumber, IsBoolean } from 'class-validator';
+import { IsString, IsOptional, IsUrl, IsNotEmpty, IsNumber, IsBoolean, ValidateNested, IsArray } from 'class-validator';
+import { Type } from 'class-transformer';
+
+export class SubServiceItemDto {
+  @IsNotEmpty()
+  @IsString()
+  name: string;
+
+  @IsOptional()
+  @IsNumber()
+  price?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  is_contact_for_price?: boolean;
+
+  @IsOptional()
+  @IsNumber()
+  agent_commission_percentage?: number;
+
+  @IsOptional()
+  @IsNumber()
+  vendor_commission_percentage?: number;
+
+  @IsOptional()
+  @IsString()
+  description?: string;
+
+  @IsOptional()
+  @IsString()
+  image1?: string;
+
+  @IsOptional()
+  @IsString()
+  image2?: string;
+
+  @IsOptional()
+  @IsArray()
+  faq?: { question: string; answer: string }[];
+}
 
 export class CreateNestedServiceDto {
   @IsNotEmpty()
@@ -26,15 +65,8 @@ export class CreateNestedServiceDto {
   is_contact_for_price?: boolean;
 
   @IsOptional()
-  sub_services?: {
-    name: string;
-    price: number;
-    is_contact_for_price?: boolean;
-    agent_commission_percentage?: number;
-    vendor_commission_percentage?: number;
-    description?: string;
-    image1?: string;
-    image2?: string;
-    faq?: { question: string; answer: string }[];
-  }[];
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => SubServiceItemDto)
+  sub_services?: SubServiceItemDto[];
 }
