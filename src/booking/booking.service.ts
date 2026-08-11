@@ -30,15 +30,21 @@ export class BookingService {
     private readonly usersService: UsersService,
     private readonly configService: ConfigService,
     private readonly notificationService: NotificationService,
-  ) { }
+  ) {}
 
-  async create(createBookingDto: CreateBookingDto, userId: number, userReq?: any) {
+  async create(
+    createBookingDto: CreateBookingDto,
+    userId: number,
+    userReq?: any,
+  ) {
     const finalUserId = createBookingDto.user_id || userId;
     const bookingData: any = {
       ...createBookingDto,
       user: { id: finalUserId },
       vendor: { id: createBookingDto.vendor_id },
-      service: createBookingDto.service_id ? { id: createBookingDto.service_id } : undefined,
+      service: createBookingDto.service_id
+        ? { id: createBookingDto.service_id }
+        : undefined,
     };
     delete bookingData.user_id;
     delete bookingData.service_id;
@@ -48,17 +54,18 @@ export class BookingService {
     }
 
     let totalPrice = 0;
-    const bookingQuantity = createBookingDto.quantity && createBookingDto.quantity > 0
-      ? createBookingDto.quantity
-      : 1;
+    const bookingQuantity =
+      createBookingDto.quantity && createBookingDto.quantity > 0
+        ? createBookingDto.quantity
+        : 1;
     bookingData.quantity = bookingQuantity;
 
     const subServiceItems = createBookingDto.sub_service_items?.length
       ? createBookingDto.sub_service_items
       : (createBookingDto.sub_service_ids || []).map((id) => ({
-        sub_service_id: id,
-        quantity: 1,
-      }));
+          sub_service_id: id,
+          quantity: 1,
+        }));
 
     if (subServiceItems.length > 0) {
       const subServiceIds = subServiceItems.map((item) => item.sub_service_id);
@@ -68,7 +75,9 @@ export class BookingService {
       bookingData.subServices = subServices;
       bookingData.sub_service_items = subServiceItems;
       totalPrice += subServiceItems.reduce((sum, item) => {
-        const subService = subServices.find((ss) => ss.id === item.sub_service_id);
+        const subService = subServices.find(
+          (ss) => ss.id === item.sub_service_id,
+        );
         return sum + Number(subService?.price || 0) * item.quantity;
       }, 0);
     }
@@ -77,7 +86,7 @@ export class BookingService {
 
     if (createBookingDto.package_id) {
       const pkg = await this.packageRepository.findOne({
-        where: { id: createBookingDto.package_id }
+        where: { id: createBookingDto.package_id },
       });
       if (pkg) {
         bookingData.pkg = pkg;
@@ -89,13 +98,17 @@ export class BookingService {
     if (createBookingDto.duration_months) {
       bookingData.duration_months = createBookingDto.duration_months;
       const expireDate = new Date(createBookingDto.date);
-      
+
       if (bookingData.pkg && bookingData.pkg.package_type === 'weekly') {
-        expireDate.setDate(expireDate.getDate() + createBookingDto.duration_months * 7);
+        expireDate.setDate(
+          expireDate.getDate() + createBookingDto.duration_months * 7,
+        );
       } else {
-        expireDate.setMonth(expireDate.getMonth() + createBookingDto.duration_months);
+        expireDate.setMonth(
+          expireDate.getMonth() + createBookingDto.duration_months,
+        );
       }
-      
+
       bookingData.expire_date = expireDate.toISOString().split('T')[0];
     }
 
@@ -119,22 +132,33 @@ export class BookingService {
     const saveResult = await this.bookingRepository.save(booking);
     const savedBooking = Array.isArray(saveResult) ? saveResult[0] : saveResult;
 
-    const requesterRole = userReq?.role?.toLowerCase().replace(/\s+/g, '') || '';
+    const requesterRole =
+      userReq?.role?.toLowerCase().replace(/\s+/g, '') || '';
     if (requesterRole === 'client') {
-      this.notifyVendorAndSuperAdmin(savedBooking.id, createBookingDto.vendor_id).catch(
-        (error) =>
-          this.logger.error(
-            `Failed to send booking SMS notifications for booking #${savedBooking.id}`,
-            error?.message || error,
-          ),
+      this.notifyVendorAndSuperAdmin(
+        savedBooking.id,
+        createBookingDto.vendor_id,
+      ).catch((error) =>
+        this.logger.error(
+          `Failed to send booking SMS notifications for booking #${savedBooking.id}`,
+          error?.message || error,
+        ),
       );
     }
 
     // Trigger Notification System
     const msg = `New booking #${savedBooking.id} created.`;
-    this.notificationService.createForSuperAdmins(msg, NotificationType.BOOKING).catch(e => this.logger.error(e));
+    this.notificationService
+      .createForSuperAdmins(msg, NotificationType.BOOKING)
+      .catch((e) => this.logger.error(e));
     if (createBookingDto.vendor_id) {
-      this.notificationService.createForUser(createBookingDto.vendor_id, msg, NotificationType.BOOKING).catch(e => this.logger.error(e));
+      this.notificationService
+        .createForUser(
+          createBookingDto.vendor_id,
+          msg,
+          NotificationType.BOOKING,
+        )
+        .catch((e) => this.logger.error(e));
     }
 
     return savedBooking;
@@ -151,13 +175,18 @@ export class BookingService {
     return labels[status] || status;
   }
 
-  private buildStatusChangeSmsMessage(booking: Booking, newStatus: BookingStatus) {
+  private buildStatusChangeSmsMessage(
+    booking: Booking,
+    newStatus: BookingStatus,
+  ) {
     const serviceLabel =
       booking.service?.name ||
       booking.pkg?.name ||
       booking.subServices?.map((s) => s.name).join(', ') ||
       'your service';
-    const schedule = booking.time ? `${booking.date} ${booking.time}` : booking.date;
+    const schedule = booking.time
+      ? `${booking.date} ${booking.time}`
+      : booking.date;
     const statusLabel = this.getStatusLabel(newStatus);
     const trackingLink = `https://www.rajseba.com/track/${booking.id}`;
 
@@ -168,7 +197,10 @@ export class BookingService {
     );
   }
 
-  private buildAgentStatusSmsMessage(booking: Booking, newStatus: BookingStatus) {
+  private buildAgentStatusSmsMessage(
+    booking: Booking,
+    newStatus: BookingStatus,
+  ) {
     const clientName = booking.user?.name || 'Client';
     const clientPhone = booking.user?.phone || 'N/A';
     const serviceLabel =
@@ -176,7 +208,9 @@ export class BookingService {
       booking.pkg?.name ||
       booking.subServices?.map((s) => s.name).join(', ') ||
       'Service';
-    const schedule = booking.time ? `${booking.date} ${booking.time}` : booking.date;
+    const schedule = booking.time
+      ? `${booking.date} ${booking.time}`
+      : booking.date;
     const statusLabel = this.getStatusLabel(newStatus);
 
     return (
@@ -195,7 +229,13 @@ export class BookingService {
 
     const booking = await this.bookingRepository.findOne({
       where: { id: bookingId },
-      relations: { user: true, agent: true, service: true, pkg: true, subServices: true },
+      relations: {
+        user: true,
+        agent: true,
+        service: true,
+        pkg: true,
+        subServices: true,
+      },
     });
 
     if (!booking?.agent?.phone) return;
@@ -230,7 +270,9 @@ export class BookingService {
       booking.pkg?.name ||
       booking.subServices?.map((s) => s.name).join(', ') ||
       'Service';
-    const schedule = booking.time ? `${booking.date} ${booking.time}` : booking.date;
+    const schedule = booking.time
+      ? `${booking.date} ${booking.time}`
+      : booking.date;
 
     return (
       `Rajsheba: Booking #${booking.id} has been completed. ` +
@@ -243,7 +285,14 @@ export class BookingService {
   private async notifyVendorAndSuperAdminOnCompletion(bookingId: number) {
     const booking = await this.bookingRepository.findOne({
       where: { id: bookingId },
-      relations: { user: true, vendor: true, agent: true, service: true, pkg: true, subServices: true },
+      relations: {
+        user: true,
+        vendor: true,
+        agent: true,
+        service: true,
+        pkg: true,
+        subServices: true,
+      },
     });
 
     if (!booking) return;
@@ -257,7 +306,9 @@ export class BookingService {
       if (vendor?.phone) recipientPhones.add(vendor.phone);
     }
 
-    const superAdmins = await this.usersService.findByRoleName(RoleType.SUPER_ADMIN);
+    const superAdmins = await this.usersService.findByRoleName(
+      RoleType.SUPER_ADMIN,
+    );
     for (const admin of superAdmins) {
       if (admin.phone) recipientPhones.add(admin.phone);
     }
@@ -266,7 +317,9 @@ export class BookingService {
     if (fallbackPhone) recipientPhones.add(fallbackPhone);
 
     await Promise.all(
-      [...recipientPhones].map((phone) => this.smsService.sendMessage(phone, message)),
+      [...recipientPhones].map((phone) =>
+        this.smsService.sendMessage(phone, message),
+      ),
     );
   }
 
@@ -303,13 +356,19 @@ export class BookingService {
     }
   }
 
-  private buildBookingSmsMessage(booking: Booking, clientName: string, clientPhone: string) {
+  private buildBookingSmsMessage(
+    booking: Booking,
+    clientName: string,
+    clientPhone: string,
+  ) {
     const serviceLabel =
       booking.service?.name ||
       booking.pkg?.name ||
       booking.subServices?.map((s) => s.name).join(', ') ||
       'Service';
-    const schedule = booking.time ? `${booking.date} ${booking.time}` : booking.date;
+    const schedule = booking.time
+      ? `${booking.date} ${booking.time}`
+      : booking.date;
 
     return (
       `Rajsheba: New booking #${booking.id} by ${clientName} (${clientPhone}). ` +
@@ -321,14 +380,24 @@ export class BookingService {
   private async notifyVendorAndSuperAdmin(bookingId: number, vendorId: number) {
     const booking = await this.bookingRepository.findOne({
       where: { id: bookingId },
-      relations: { user: true, vendor: true, service: true, pkg: true, subServices: true },
+      relations: {
+        user: true,
+        vendor: true,
+        service: true,
+        pkg: true,
+        subServices: true,
+      },
     });
 
     if (!booking) return;
 
     const clientName = booking.user?.name || 'Client';
     const clientPhone = booking.user?.phone || 'N/A';
-    const message = this.buildBookingSmsMessage(booking, clientName, clientPhone);
+    const message = this.buildBookingSmsMessage(
+      booking,
+      clientName,
+      clientPhone,
+    );
     const recipientPhones = new Set<string>();
 
     if (vendorId) {
@@ -336,7 +405,9 @@ export class BookingService {
       if (vendor?.phone) recipientPhones.add(vendor.phone);
     }
 
-    const superAdmins = await this.usersService.findByRoleName(RoleType.SUPER_ADMIN);
+    const superAdmins = await this.usersService.findByRoleName(
+      RoleType.SUPER_ADMIN,
+    );
     for (const admin of superAdmins) {
       if (admin.phone) recipientPhones.add(admin.phone);
     }
@@ -345,7 +416,9 @@ export class BookingService {
     if (fallbackPhone) recipientPhones.add(fallbackPhone);
 
     await Promise.all(
-      [...recipientPhones].map((phone) => this.smsService.sendMessage(phone, message)),
+      [...recipientPhones].map((phone) =>
+        this.smsService.sendMessage(phone, message),
+      ),
     );
   }
 
@@ -362,44 +435,67 @@ export class BookingService {
 
     if (booking.sub_service_items && booking.sub_service_items.length > 0) {
       for (const item of booking.sub_service_items) {
-        const subService = await this.subServiceRepository.findOne({ where: { id: item.sub_service_id } });
+        const subService = await this.subServiceRepository.findOne({
+          where: { id: item.sub_service_id },
+        });
         if (subService) {
           const itemTotal = Number(subService.price) * item.quantity;
-          
+
           if (subService.agent_commission_percentage) {
-            totalAgentEarnings += itemTotal * (Number(subService.agent_commission_percentage) / 100);
+            totalAgentEarnings +=
+              itemTotal *
+              (Number(subService.agent_commission_percentage) / 100);
           }
-          
+
           if (subService.vendor_commission_percentage) {
-            totalVendorEarnings += itemTotal * (Number(subService.vendor_commission_percentage) / 100);
+            totalVendorEarnings +=
+              itemTotal *
+              (Number(subService.vendor_commission_percentage) / 100);
           }
         }
       }
     }
 
     if (booking.pkg) {
-      const pkg = await this.packageRepository.findOne({ where: { id: booking.pkg.id } });
+      const pkg = await this.packageRepository.findOne({
+        where: { id: booking.pkg.id },
+      });
       if (pkg) {
-        const pkgTotal = Number(pkg.price || 0) * Number(booking.quantity || 1) * Number(booking.duration_months || 1);
-        
+        const pkgTotal =
+          Number(pkg.price || 0) *
+          Number(booking.quantity || 1) *
+          Number(booking.duration_months || 1);
+
         if (pkg.agent_commission_percentage) {
-          totalAgentEarnings += pkgTotal * (Number(pkg.agent_commission_percentage) / 100);
+          totalAgentEarnings +=
+            pkgTotal * (Number(pkg.agent_commission_percentage) / 100);
         }
-        
+
         if (pkg.vendor_commission_percentage) {
-          totalVendorEarnings += pkgTotal * (Number(pkg.vendor_commission_percentage) / 100);
+          totalVendorEarnings +=
+            pkgTotal * (Number(pkg.vendor_commission_percentage) / 100);
         }
       }
     }
 
     if (booking.agent?.id && totalAgentEarnings > 0) {
-      await this.usersService.updateUserWallet(booking.agent.id, totalAgentEarnings);
-      this.logger.log(`Added ৳${totalAgentEarnings} to agent ${booking.agent.id} wallet for booking ${bookingId}`);
+      await this.usersService.updateUserWallet(
+        booking.agent.id,
+        totalAgentEarnings,
+      );
+      this.logger.log(
+        `Added ৳${totalAgentEarnings} to agent ${booking.agent.id} wallet for booking ${bookingId}`,
+      );
     }
 
     if (booking.vendor?.id && totalVendorEarnings > 0) {
-      await this.usersService.updateUserWallet(booking.vendor.id, totalVendorEarnings);
-      this.logger.log(`Added ৳${totalVendorEarnings} to vendor ${booking.vendor.id} wallet for booking ${bookingId}`);
+      await this.usersService.updateUserWallet(
+        booking.vendor.id,
+        totalVendorEarnings,
+      );
+      this.logger.log(
+        `Added ৳${totalVendorEarnings} to vendor ${booking.vendor.id} wallet for booking ${bookingId}`,
+      );
     }
   }
 
@@ -415,49 +511,89 @@ export class BookingService {
     } else if (roleName === 'agent') {
       whereCondition = [
         { agent: { id: user.sub } },
-        { user: { agent: { id: user.sub } } }
+        { user: { agent: { id: user.sub } } },
       ];
-    } else if (roleName !== 'super admin' && roleName !== 'superadmin' && roleName !== 'admin') {
+    } else if (
+      roleName !== 'super admin' &&
+      roleName !== 'superadmin' &&
+      roleName !== 'admin'
+    ) {
       // For normal users or clients
       whereCondition = { user: { id: user.sub } };
     }
 
     return await this.bookingRepository.find({
       where: whereCondition,
-      relations: { user: { agent: true }, vendor: true, employees: true, subServices: true, pkg: true, service: true, agent: true },
+      relations: {
+        user: { agent: true },
+        vendor: true,
+        employees: true,
+        subServices: true,
+        pkg: true,
+        service: true,
+        agent: true,
+      },
     });
   }
 
   async findByVendor(vendorId: number) {
     return await this.bookingRepository.find({
       where: { vendor: { id: vendorId } },
-      relations: { user: true, employees: true, subServices: true, pkg: true, service: true },
+      relations: {
+        user: true,
+        employees: true,
+        subServices: true,
+        pkg: true,
+        service: true,
+      },
     });
   }
 
   async findByUser(userId: number) {
     return await this.bookingRepository.find({
       where: { user: { id: userId } },
-      relations: { vendor: true, employees: true, subServices: true, pkg: true, service: true },
+      relations: {
+        vendor: true,
+        employees: true,
+        subServices: true,
+        pkg: true,
+        service: true,
+      },
     });
   }
 
   async findOne(id: number, user?: any) {
     const booking = await this.bookingRepository.findOne({
       where: { id },
-      relations: { user: { agent: true }, vendor: true, employees: true, subServices: true, pkg: true, service: true, agent: true },
+      relations: {
+        user: { agent: true },
+        vendor: true,
+        employees: true,
+        subServices: true,
+        pkg: true,
+        service: true,
+        agent: true,
+      },
     });
     if (!booking) {
       throw new NotFoundException(`Booking with ID ${id} not found`);
     }
 
     const roleName = user?.role?.toLowerCase() || '';
-    if (user && roleName !== 'super admin' && roleName !== 'superadmin' && roleName !== 'admin') {
+    if (
+      user &&
+      roleName !== 'super admin' &&
+      roleName !== 'superadmin' &&
+      roleName !== 'admin'
+    ) {
       const isOwner = booking.user?.id === user.sub;
       const isVendor = booking.vendor?.id === user.sub;
-      const isEmployee = booking.employees?.some((emp: any) => emp.id === user.sub);
+      const isEmployee = booking.employees?.some(
+        (emp: any) => emp.id === user.sub,
+      );
 
-      const isAgent = booking.agent?.id === user.sub || booking.user?.agent?.id === user.sub;
+      const isAgent =
+        booking.agent?.id === user.sub || booking.user?.agent?.id === user.sub;
 
       if (!isOwner && !isVendor && !isEmployee && !isAgent) {
         throw new NotFoundException(`Booking with ID ${id} not found`);
@@ -470,7 +606,15 @@ export class BookingService {
   async track(id: number) {
     const booking = await this.bookingRepository.findOne({
       where: { id },
-      relations: { user: { agent: true }, vendor: true, employees: true, subServices: true, pkg: true, service: true, agent: true },
+      relations: {
+        user: { agent: true },
+        vendor: true,
+        employees: true,
+        subServices: true,
+        pkg: true,
+        service: true,
+        agent: true,
+      },
     });
     if (!booking) {
       throw new NotFoundException(`Booking with ID ${id} not found`);
@@ -485,16 +629,23 @@ export class BookingService {
     Object.assign(booking, updateBookingDto);
 
     if (updateBookingDto.status && updateBookingDto.status !== previousStatus) {
-      if (updateBookingDto.status === BookingStatus.ASSIGNED) booking.assignedAt = new Date();
-      if (updateBookingDto.status === BookingStatus.ON_THE_WAY) booking.onTheWayAt = new Date();
-      if (updateBookingDto.status === BookingStatus.COMPLETED) booking.completedAt = new Date();
+      if (updateBookingDto.status === BookingStatus.ASSIGNED)
+        booking.assignedAt = new Date();
+      if (updateBookingDto.status === BookingStatus.ON_THE_WAY)
+        booking.onTheWayAt = new Date();
+      if (updateBookingDto.status === BookingStatus.COMPLETED)
+        booking.completedAt = new Date();
     }
 
     const saveResult = await this.bookingRepository.save(booking);
     const savedBooking = Array.isArray(saveResult) ? saveResult[0] : saveResult;
 
     if (savedBooking.status !== previousStatus) {
-      this.sendStatusChangeNotifications(savedBooking.id, savedBooking.status, previousStatus);
+      this.sendStatusChangeNotifications(
+        savedBooking.id,
+        savedBooking.status,
+        previousStatus,
+      );
       if (savedBooking.status === BookingStatus.COMPLETED) {
         await this.calculateAndAddEarnings(savedBooking.id);
       }
@@ -506,14 +657,18 @@ export class BookingService {
   async assignEmployees(bookingId: number, employeeIds: number[]) {
     const booking = await this.findOne(bookingId);
     const previousStatus = booking.status;
-    booking.employees = employeeIds.map(id => ({ id } as any));
+    booking.employees = employeeIds.map((id) => ({ id }) as any);
     booking.status = BookingStatus.ASSIGNED;
 
     const saveResult = await this.bookingRepository.save(booking);
     const savedBooking = Array.isArray(saveResult) ? saveResult[0] : saveResult;
 
     if (previousStatus !== BookingStatus.ASSIGNED) {
-      this.sendStatusChangeNotifications(savedBooking.id, BookingStatus.ASSIGNED, previousStatus);
+      this.sendStatusChangeNotifications(
+        savedBooking.id,
+        BookingStatus.ASSIGNED,
+        previousStatus,
+      );
     }
 
     return savedBooking;
@@ -529,19 +684,28 @@ export class BookingService {
 
     this.sendStatusChangeNotifications(savedBooking.id, status, previousStatus);
 
-    if (status === BookingStatus.COMPLETED && previousStatus !== BookingStatus.COMPLETED) {
+    if (
+      status === BookingStatus.COMPLETED &&
+      previousStatus !== BookingStatus.COMPLETED
+    ) {
       await this.calculateAndAddEarnings(savedBooking.id);
     }
 
     // In-App Notification for Booking Status Change
     if (status === BookingStatus.COMPLETED) {
       const msg = `Booking #${savedBooking.id} has been completed.`;
-      this.notificationService.createForSuperAdmins(msg, NotificationType.BOOKING).catch(e => this.logger.error(e));
+      this.notificationService
+        .createForSuperAdmins(msg, NotificationType.BOOKING)
+        .catch((e) => this.logger.error(e));
       if (booking.vendor?.id) {
-        this.notificationService.createForUser(booking.vendor.id, msg, NotificationType.BOOKING).catch(e => this.logger.error(e));
+        this.notificationService
+          .createForUser(booking.vendor.id, msg, NotificationType.BOOKING)
+          .catch((e) => this.logger.error(e));
       }
       if (booking.user?.id) {
-        this.notificationService.createForUser(booking.user.id, msg, NotificationType.BOOKING).catch(e => this.logger.error(e));
+        this.notificationService
+          .createForUser(booking.user.id, msg, NotificationType.BOOKING)
+          .catch((e) => this.logger.error(e));
       }
     }
 

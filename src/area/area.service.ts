@@ -26,7 +26,10 @@ export class AreaService {
   }
 
   async findOne(id: number) {
-    const area = await this.areaRepository.findOne({ where: { id }, relations: { district: true } });
+    const area = await this.areaRepository.findOne({
+      where: { id },
+      relations: { district: true },
+    });
     if (!area) {
       throw new NotFoundException(`Area with ID ${id} not found`);
     }
@@ -36,7 +39,7 @@ export class AreaService {
   async update(id: number, updateAreaDto: UpdateAreaDto) {
     const area = await this.findOne(id);
     const { district_id, ...data } = updateAreaDto;
-    
+
     if (district_id) {
       area.district = { id: district_id } as any;
     }

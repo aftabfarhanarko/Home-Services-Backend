@@ -18,11 +18,16 @@ export class DevisionService {
   }
 
   async findAll() {
-    return await this.devisionRepository.find({ relations: { districts: true } });
+    return await this.devisionRepository.find({
+      relations: { districts: true },
+    });
   }
 
   async findOne(id: number) {
-    const devision = await this.devisionRepository.findOne({ where: { id }, relations: { districts: true } });
+    const devision = await this.devisionRepository.findOne({
+      where: { id },
+      relations: { districts: true },
+    });
     if (!devision) {
       throw new NotFoundException(`Devision with ID ${id} not found`);
     }

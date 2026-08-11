@@ -9,7 +9,11 @@ import { SmsModule } from '../sms/sms.module';
 import { NotificationModule } from '../notification/notification.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Withdraw, User, Booking]), SmsModule, NotificationModule],
+  imports: [
+    TypeOrmModule.forFeature([Withdraw, User, Booking]),
+    SmsModule,
+    NotificationModule,
+  ],
   controllers: [WithdrawController],
   providers: [WithdrawService],
 })

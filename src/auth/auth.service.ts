@@ -1,4 +1,8 @@
-import { Injectable, BadRequestException, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, MoreThan, IsNull } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
@@ -30,12 +34,14 @@ export class AuthService {
     });
 
     if (recentOtp) {
-      throw new BadRequestException('Please wait 1 minute before requesting another OTP');
+      throw new BadRequestException(
+        'Please wait 1 minute before requesting another OTP',
+      );
     }
 
     const otpCode = Math.floor(1000 + Math.random() * 9000).toString(); // 4 digit OTP
     const hashedOtp = await bcrypt.hash(otpCode, 10);
-    
+
     // Expires in 5 minutes
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
 
@@ -44,9 +50,9 @@ export class AuthService {
       otpCode: hashedOtp,
       expiresAt,
     });
-    
+
     await this.otpRepository.save(otpRecord);
-    
+
     await this.smsService.sendOtp(phone, otpCode);
 
     return { message: 'OTP sent successfully' };
@@ -62,7 +68,9 @@ export class AuthService {
     });
 
     if (!otpRecord) {
-      throw new BadRequestException('No active OTP found for this phone number');
+      throw new BadRequestException(
+        'No active OTP found for this phone number',
+      );
     }
 
     if (new Date() > otpRecord.expiresAt) {
@@ -70,7 +78,9 @@ export class AuthService {
     }
 
     if (otpRecord.attempts >= 3) {
-      throw new BadRequestException('Too many failed attempts. Please request a new OTP');
+      throw new BadRequestException(
+        'Too many failed attempts. Please request a new OTP',
+      );
     }
 
     const isMatch = await bcrypt.compare(otpCode, otpRecord.otpCode);
@@ -103,7 +113,7 @@ export class AuthService {
     const tokens = await this.generateTokens(user.id, user.role?.name);
     return {
       user,
-      ...tokens
+      ...tokens,
     };
   }
 
@@ -120,7 +130,7 @@ export class AuthService {
       });
 
       const user = await this.usersService.findOne(payload.sub);
-      
+
       const isMatch = await bcrypt.compare(refreshToken, user.refreshToken);
       if (!isMatch) {
         throw new UnauthorizedException('Invalid refresh token');
@@ -139,9 +149,9 @@ export class AuthService {
 
   private async generateTokens(userId: number, roleName?: string) {
     const payload = { sub: userId, role: roleName };
-    
+
     const accessToken = this.jwtService.sign(payload);
-    
+
     const refreshTokenPlain = this.jwtService.sign(payload, {
       secret: process.env.JWT_REFRESH_SECRET || 'fallback_refresh_secret',
       expiresIn: '7d',

@@ -7,13 +7,8 @@ import { ManualInvoiceController } from './controllers/manual-invoice.controller
 import { ManualServiceController } from './controllers/manual-service.controller';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([ManualInvoice, ManualService]),
-  ],
-  controllers: [
-    ManualInvoiceController,
-    ManualServiceController,
-  ],
+  imports: [TypeOrmModule.forFeature([ManualInvoice, ManualService])],
+  controllers: [ManualInvoiceController, ManualServiceController],
   providers: [ManualInvoiceService],
   exports: [ManualInvoiceService],
 })

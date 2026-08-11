@@ -1,4 +1,11 @@
-import { IsString, IsOptional, IsNotEmpty, IsNumber, IsArray, IsEnum } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsNotEmpty,
+  IsNumber,
+  IsArray,
+  IsEnum,
+} from 'class-validator';
 
 export class CreatePackageDto {
   @IsNotEmpty()

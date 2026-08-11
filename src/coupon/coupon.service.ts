@@ -131,7 +131,12 @@ export class CouponService {
       throw new BadRequestException('Invalid coupon code');
     }
 
-    this.ensureCouponUsable(coupon, dto.subtotal, dto.service_id, dto.package_id);
+    this.ensureCouponUsable(
+      coupon,
+      dto.subtotal,
+      dto.service_id,
+      dto.package_id,
+    );
 
     const discountAmount = this.calculateDiscount(coupon, dto.subtotal);
     const finalPrice = Math.max(Number(dto.subtotal) - discountAmount, 0);
@@ -157,7 +162,11 @@ export class CouponService {
       package_id: packageId,
     });
 
-    await this.couponRepository.increment({ id: result.coupon.id }, 'used_count', 1);
+    await this.couponRepository.increment(
+      { id: result.coupon.id },
+      'used_count',
+      1,
+    );
 
     return result;
   }
@@ -182,7 +191,9 @@ export class CouponService {
 
     if (coupon.usage_limit !== null && coupon.usage_limit !== undefined) {
       if (coupon.used_count >= coupon.usage_limit) {
-        throw new BadRequestException('This coupon has reached its usage limit');
+        throw new BadRequestException(
+          'This coupon has reached its usage limit',
+        );
       }
     }
 
@@ -194,13 +205,17 @@ export class CouponService {
 
     if (coupon.applicable_to === CouponApplicableTo.SERVICE) {
       if (!serviceId || coupon.service?.id !== serviceId) {
-        throw new BadRequestException('This coupon is not valid for the selected service');
+        throw new BadRequestException(
+          'This coupon is not valid for the selected service',
+        );
       }
     }
 
     if (coupon.applicable_to === CouponApplicableTo.PACKAGE) {
       if (!packageId || coupon.pkg?.id !== packageId) {
-        throw new BadRequestException('This coupon is not valid for the selected package');
+        throw new BadRequestException(
+          'This coupon is not valid for the selected package',
+        );
       }
     }
   }

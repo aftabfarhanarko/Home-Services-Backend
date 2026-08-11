@@ -13,9 +13,18 @@ export class ChatService {
     private readonly userRepository: Repository<User>,
   ) {}
 
-  async saveMessage(senderId: number, receiverId: number, content: string, imageUrl?: string): Promise<Message> {
-    const sender = await this.userRepository.findOne({ where: { id: senderId } });
-    const receiver = await this.userRepository.findOne({ where: { id: receiverId } });
+  async saveMessage(
+    senderId: number,
+    receiverId: number,
+    content: string,
+    imageUrl?: string,
+  ): Promise<Message> {
+    const sender = await this.userRepository.findOne({
+      where: { id: senderId },
+    });
+    const receiver = await this.userRepository.findOne({
+      where: { id: receiverId },
+    });
 
     if (!sender || !receiver) {
       throw new NotFoundException('Sender or receiver not found');
@@ -45,10 +54,7 @@ export class ChatService {
   async getAdminInbox(adminId: number): Promise<any[]> {
     // Get unique users who have chatted with this admin
     const messages = await this.messageRepository.find({
-      where: [
-        { receiver: { id: adminId } },
-        { sender: { id: adminId } },
-      ],
+      where: [{ receiver: { id: adminId } }, { sender: { id: adminId } }],
       order: { createdAt: 'DESC' },
       relations: { sender: true, receiver: true },
     });
@@ -77,7 +83,7 @@ export class ChatService {
   async markAsRead(senderId: number, receiverId: number): Promise<void> {
     await this.messageRepository.update(
       { sender: { id: senderId }, receiver: { id: receiverId }, isRead: false },
-      { isRead: true }
+      { isRead: true },
     );
   }
 }

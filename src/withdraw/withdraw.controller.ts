@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus, UseGuards, Req } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  HttpStatus,
+  UseGuards,
+  Req,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../roles/guards/roles.guard';
 import { Roles } from '../roles/decorators/roles.decorator';
@@ -11,7 +22,7 @@ import { WithdrawStatus } from './entities/withdraw.entity';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('withdraws')
 export class WithdrawController {
-  constructor(private readonly withdrawService: WithdrawService) { }
+  constructor(private readonly withdrawService: WithdrawService) {}
 
   @Post('request')
   async create(@Body() createWithdrawDto: CreateWithdrawDto, @Req() req: any) {
@@ -61,7 +72,11 @@ export class WithdrawController {
     @Body('status') status: WithdrawStatus,
     @Body('admin_note') admin_note?: string,
   ) {
-    const data = await this.withdrawService.updateStatus(+id, status, admin_note);
+    const data = await this.withdrawService.updateStatus(
+      +id,
+      status,
+      admin_note,
+    );
     return {
       statusCode: HttpStatus.OK,
       message: 'Withdraw status updated successfully',

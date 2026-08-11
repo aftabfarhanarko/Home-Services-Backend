@@ -20,9 +20,10 @@ export class PackageService {
     const pkg = this.packageRepository.create({
       ...createPackageDto,
       service: { id: createPackageDto.service_id },
-      items: createPackageDto.nested_service_ids?.map(id => ({
-        nestedService: { id }
-      })) || [],
+      items:
+        createPackageDto.nested_service_ids?.map((id) => ({
+          nestedService: { id },
+        })) || [],
     });
     return await this.packageRepository.save(pkg);
   }
@@ -32,17 +33,27 @@ export class PackageService {
     if (user?.role === 'Vendor') {
       packages = await this.packageRepository.find({
         where: { service: { vendor: { id: user.sub } } },
-        relations: { service: { vendor: true }, items: { nestedService: true }, bookings: true },
+        relations: {
+          service: { vendor: true },
+          items: { nestedService: true },
+          bookings: true,
+        },
       });
     } else {
       packages = await this.packageRepository.find({
-        relations: { service: true, items: { nestedService: true }, bookings: true },
+        relations: {
+          service: true,
+          items: { nestedService: true },
+          bookings: true,
+        },
       });
     }
 
-    packages.forEach(p => {
+    packages.forEach((p) => {
       if (p.bookings) {
-        p.bookings = p.bookings.filter(b => b.status === BookingStatus.COMPLETED);
+        p.bookings = p.bookings.filter(
+          (b) => b.status === BookingStatus.COMPLETED,
+        );
       }
     });
 
@@ -51,12 +62,18 @@ export class PackageService {
 
   async findAllPublic() {
     const packages = await this.packageRepository.find({
-      relations: { service: { vendor: true }, items: { nestedService: true }, bookings: true },
+      relations: {
+        service: { vendor: true },
+        items: { nestedService: true },
+        bookings: true,
+      },
     });
 
-    packages.forEach(p => {
+    packages.forEach((p) => {
       if (p.bookings) {
-        p.bookings = p.bookings.filter(b => b.status === BookingStatus.COMPLETED);
+        p.bookings = p.bookings.filter(
+          (b) => b.status === BookingStatus.COMPLETED,
+        );
       }
     });
 
@@ -80,9 +97,11 @@ export class PackageService {
       where: { service: { id: serviceId } },
       relations: { items: { nestedService: true }, bookings: true },
     });
-    packages.forEach(p => {
+    packages.forEach((p) => {
       if (p.bookings) {
-        p.bookings = p.bookings.filter(b => b.status === BookingStatus.COMPLETED);
+        p.bookings = p.bookings.filter(
+          (b) => b.status === BookingStatus.COMPLETED,
+        );
       }
     });
     return packages;
@@ -91,13 +110,19 @@ export class PackageService {
   async findOne(id: number) {
     const pkg = await this.packageRepository.findOne({
       where: { id },
-      relations: { service: true, items: { nestedService: true }, bookings: true },
+      relations: {
+        service: true,
+        items: { nestedService: true },
+        bookings: true,
+      },
     });
     if (!pkg) {
       throw new NotFoundException(`Package with ID ${id} not found`);
     }
     if (pkg.bookings) {
-      pkg.bookings = pkg.bookings.filter(b => b.status === BookingStatus.COMPLETED);
+      pkg.bookings = pkg.bookings.filter(
+        (b) => b.status === BookingStatus.COMPLETED,
+      );
     }
     return pkg;
   }
@@ -105,17 +130,19 @@ export class PackageService {
   async update(id: number, updatePackageDto: UpdatePackageDto) {
     const pkg = await this.findOne(id);
     if (updatePackageDto.service_id) {
-        pkg.service = { id: updatePackageDto.service_id } as any;
+      pkg.service = { id: updatePackageDto.service_id } as any;
     }
     if (updatePackageDto.nested_service_ids) {
-        // remove old items and add new ones (simplified)
-        await this.packageItemRepository.delete({ package: { id } });
-        pkg.items = updatePackageDto.nested_service_ids.map(nid => this.packageItemRepository.create({ nestedService: { id: nid } }));
+      // remove old items and add new ones (simplified)
+      await this.packageItemRepository.delete({ package: { id } });
+      pkg.items = updatePackageDto.nested_service_ids.map((nid) =>
+        this.packageItemRepository.create({ nestedService: { id: nid } }),
+      );
     }
     Object.assign(pkg, {
-        name: updatePackageDto.name ?? pkg.name,
-        description: updatePackageDto.description ?? pkg.description,
-        price: updatePackageDto.price ?? pkg.price,
+      name: updatePackageDto.name ?? pkg.name,
+      description: updatePackageDto.description ?? pkg.description,
+      price: updatePackageDto.price ?? pkg.price,
     });
     return await this.packageRepository.save(pkg);
   }

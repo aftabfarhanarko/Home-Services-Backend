@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Param, Delete, Put, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Delete,
+  Put,
+  UseGuards,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { ManualInvoiceService } from '../services/manual-invoice.service';
 
@@ -51,7 +60,10 @@ export class ManualInvoiceController {
 
   // PUT /api/manual-invoices/:id/payment — update payment
   @Put(':id/payment')
-  async updatePayment(@Param('id') id: string, @Body('amountPaid') amountPaid: number) {
+  async updatePayment(
+    @Param('id') id: string,
+    @Body('amountPaid') amountPaid: number,
+  ) {
     return await this.manualInvoiceService.updatePayment(+id, amountPaid);
   }
 

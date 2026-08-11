@@ -1,4 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, Index } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  Index,
+} from 'typeorm';
 
 export enum PaymentStatus {
   PAID = 'Paid',
@@ -84,7 +90,11 @@ export class ManualInvoice {
   @Column({ type: 'varchar', length: 255, default: 'Ariful Islam Arif' })
   signeeName: string;
 
-  @Column({ type: 'varchar', length: 255, default: 'CEO, Rajseba Design Studio' })
+  @Column({
+    type: 'varchar',
+    length: 255,
+    default: 'CEO, Rajseba Design Studio',
+  })
   signeeRole: string;
 
   @Column({ type: 'varchar', length: 20, default: 'active' })

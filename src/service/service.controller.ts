@@ -1,4 +1,16 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus, UseGuards, Req, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  HttpStatus,
+  UseGuards,
+  Req,
+  Query,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Public } from '../auth/decorators/public.decorator';
 import { ServiceService } from './service.service';
@@ -8,7 +20,7 @@ import { SearchServiceDto } from './dto/search-service.dto';
 
 @Controller('services')
 export class ServiceController {
-  constructor(private readonly serviceService: ServiceService) { }
+  constructor(private readonly serviceService: ServiceService) {}
 
   @Post()
   async create(@Body() createServiceDto: CreateServiceDto) {
@@ -63,7 +75,7 @@ export class ServiceController {
         error: error.message,
         stack: error.stack,
         userRole: req.user?.role,
-        userSub: req.user?.sub
+        userSub: req.user?.sub,
       };
     }
   }
@@ -79,7 +91,10 @@ export class ServiceController {
   }
 
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() updateServiceDto: UpdateServiceDto) {
+  async update(
+    @Param('id') id: string,
+    @Body() updateServiceDto: UpdateServiceDto,
+  ) {
     const data = await this.serviceService.update(+id, updateServiceDto);
     return {
       statusCode: HttpStatus.OK,

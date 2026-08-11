@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateRoleDto } from './dto/create-role.dto';
@@ -13,9 +17,13 @@ export class RolesService {
   ) {}
 
   async create(createRoleDto: CreateRoleDto): Promise<Role> {
-    const existingRole = await this.roleRepository.findOne({ where: { name: createRoleDto.name } });
+    const existingRole = await this.roleRepository.findOne({
+      where: { name: createRoleDto.name },
+    });
     if (existingRole) {
-      throw new BadRequestException(`Role with name ${createRoleDto.name} already exists`);
+      throw new BadRequestException(
+        `Role with name ${createRoleDto.name} already exists`,
+      );
     }
 
     const role = this.roleRepository.create(createRoleDto);
@@ -49,7 +57,7 @@ export class RolesService {
 
   async remove(id: number): Promise<void> {
     const result = await this.roleRepository.delete(id);
-    
+
     if (result.affected === 0) {
       throw new NotFoundException(`Role with ID ${id} not found`);
     }

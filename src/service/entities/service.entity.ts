@@ -1,4 +1,17 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, OneToMany, ManyToMany, JoinTable, ManyToOne, JoinColumn, Index } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  DeleteDateColumn,
+  OneToMany,
+  ManyToMany,
+  JoinTable,
+  ManyToOne,
+  JoinColumn,
+  Index,
+} from 'typeorm';
 import { Category } from '../../category/entities/category.entity';
 import { NestedService } from '../../nested-service/entities/nested-service.entity';
 import { Package } from '../../package/entities/package.entity';
@@ -52,20 +65,23 @@ export class Service {
   vendor: User;
 
   @Index()
-  @ManyToOne(() => Category, category => category.services, { nullable: true, onDelete: 'SET NULL' })
+  @ManyToOne(() => Category, (category) => category.services, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
   @JoinColumn({ name: 'category_id' })
   category: Category;
 
-  @OneToMany(() => NestedService, nestedService => nestedService.service)
+  @OneToMany(() => NestedService, (nestedService) => nestedService.service)
   nestedServices: NestedService[];
 
-  @OneToMany(() => Package, pkg => pkg.service)
+  @OneToMany(() => Package, (pkg) => pkg.service)
   packages: Package[];
 
-  @OneToMany(() => Booking, booking => booking.service)
+  @OneToMany(() => Booking, (booking) => booking.service)
   bookings: Booking[];
 
-  @OneToMany(() => Review, review => review.service)
+  @OneToMany(() => Review, (review) => review.service)
   reviews: Review[];
 
   @CreateDateColumn()

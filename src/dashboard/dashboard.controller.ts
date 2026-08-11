@@ -11,12 +11,18 @@ export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
 
   @Get('overview')
-  @Roles(RoleType.SUPER_ADMIN, RoleType.VENDOR, RoleType.AGENT, RoleType.CLIENT, RoleType.EMPLOYEE)
+  @Roles(
+    RoleType.SUPER_ADMIN,
+    RoleType.VENDOR,
+    RoleType.AGENT,
+    RoleType.CLIENT,
+    RoleType.EMPLOYEE,
+  )
   async getOverview(@Req() req: any) {
     const data = await this.dashboardService.getOverviewStats();
     return {
       success: true,
-      data
+      data,
     };
   }
 
@@ -26,7 +32,7 @@ export class DashboardController {
     const data = await this.dashboardService.getAnalyticsStats();
     return {
       success: true,
-      data
+      data,
     };
   }
 
@@ -36,7 +42,7 @@ export class DashboardController {
     const data = await this.dashboardService.getAIInsights();
     return {
       success: true,
-      data
+      data,
     };
   }
 }

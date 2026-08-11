@@ -32,27 +32,33 @@ export class WithdrawService {
     });
 
     if (!booking) {
-      throw new NotFoundException(`Booking with ID ${createWithdrawDto.bookingId} not found`);
+      throw new NotFoundException(
+        `Booking with ID ${createWithdrawDto.bookingId} not found`,
+      );
     }
 
-    const requester = await this.userRepository.findOne({ 
+    const requester = await this.userRepository.findOne({
       where: { id: vendorId },
-      relations: { role: true }
+      relations: { role: true },
     });
-    
+
     if (!requester) {
       throw new NotFoundException(`User with ID ${vendorId} not found`);
     }
-    
+
     const roleName = requester?.role?.name?.toLowerCase() || '';
-    
+
     if (roleName === 'agent') {
       if (booking.agent?.id !== vendorId) {
-        throw new Error(`Booking ${createWithdrawDto.bookingId} does not belong to agent ${vendorId}`);
+        throw new Error(
+          `Booking ${createWithdrawDto.bookingId} does not belong to agent ${vendorId}`,
+        );
       }
     } else {
       if (booking.vendor?.id !== vendorId) {
-        throw new Error(`Booking ${createWithdrawDto.bookingId} does not belong to vendor ${vendorId}`);
+        throw new Error(
+          `Booking ${createWithdrawDto.bookingId} does not belong to vendor ${vendorId}`,
+        );
       }
     }
 
@@ -61,13 +67,17 @@ export class WithdrawService {
       where: { booking: { id: createWithdrawDto.bookingId } },
     });
     if (existingWithdraw) {
-      throw new Error(`A withdraw request already exists for booking ${createWithdrawDto.bookingId}`);
+      throw new Error(
+        `A withdraw request already exists for booking ${createWithdrawDto.bookingId}`,
+      );
     }
 
     let amount = 0;
-    
+
     if (roleName === 'agent') {
-      const agentCommission = Number(booking.service?.agent_commission_percentage || 0);
+      const agentCommission = Number(
+        booking.service?.agent_commission_percentage || 0,
+      );
       amount = Number(booking.total_price) * (agentCommission / 100);
     } else {
       let commissionPct = requester?.commission_percentage || 0;
@@ -76,20 +86,26 @@ export class WithdrawService {
     }
 
     if (!amount || amount <= 0) {
-      throw new Error(`Invalid withdrawal amount (Calculated amount: ${amount}). Ensure the booking has a total price greater than 0.`);
+      throw new Error(
+        `Invalid withdrawal amount (Calculated amount: ${amount}). Ensure the booking has a total price greater than 0.`,
+      );
     }
 
     const withdraw = this.withdrawRepository.create({
       amount: amount,
       vendor: { id: vendorId },
-      booking: createWithdrawDto.bookingId ? { id: createWithdrawDto.bookingId } : undefined,
-      getway: createWithdrawDto.gatewayId ? { id: createWithdrawDto.gatewayId } : undefined,
+      booking: createWithdrawDto.bookingId
+        ? { id: createWithdrawDto.bookingId }
+        : undefined,
+      getway: createWithdrawDto.gatewayId
+        ? { id: createWithdrawDto.gatewayId }
+        : undefined,
     });
     const savedWithdraw = await this.withdrawRepository.save(withdraw);
 
     if (requester.phone) {
       const message = `Your withdraw request for BDT ${amount} has been submitted successfully.`;
-      this.smsService.sendMessage(requester.phone, message).catch(err => {
+      this.smsService.sendMessage(requester.phone, message).catch((err) => {
         console.error('Failed to send SMS on withdraw creation:', err);
       });
     }
@@ -98,15 +114,20 @@ export class WithdrawService {
     try {
       const superadmins = await this.userRepository.find({
         relations: { role: true },
-        where: { role: { name: RoleType.SUPER_ADMIN } }
+        where: { role: { name: RoleType.SUPER_ADMIN } },
       });
 
       for (const admin of superadmins) {
         if (admin.phone) {
           const adminMessage = `New withdraw request for BDT ${amount} submitted by ${requester.name || 'Vendor/Agent'}.`;
-          this.smsService.sendMessage(admin.phone, adminMessage).catch(err => {
-            console.error(`Failed to send SMS to superadmin ${admin.phone}:`, err);
-          });
+          this.smsService
+            .sendMessage(admin.phone, adminMessage)
+            .catch((err) => {
+              console.error(
+                `Failed to send SMS to superadmin ${admin.phone}:`,
+                err,
+              );
+            });
         }
       }
     } catch (error) {
@@ -118,8 +139,8 @@ export class WithdrawService {
 
   async findAll() {
     return await this.withdrawRepository.find({
-      relations: { 
-        vendor: true, 
+      relations: {
+        vendor: true,
         booking: { service: true, user: true },
         getway: true,
       },
@@ -129,8 +150,8 @@ export class WithdrawService {
   async findByVendor(vendorId: number) {
     return await this.withdrawRepository.find({
       where: { vendor: { id: vendorId } },
-      relations: { 
-        vendor: true, 
+      relations: {
+        vendor: true,
         booking: { service: true, user: true },
         getway: true,
       },
@@ -140,8 +161,8 @@ export class WithdrawService {
   async findOne(id: number) {
     const withdraw = await this.withdrawRepository.findOne({
       where: { id },
-      relations: { 
-        vendor: true, 
+      relations: {
+        vendor: true,
         booking: { service: true, user: true },
         getway: true,
       },
@@ -154,44 +175,56 @@ export class WithdrawService {
 
   async updateStatus(id: number, status: WithdrawStatus, admin_note?: string) {
     const withdraw = await this.findOne(id);
-    
+
     const savedWithdraw = await this.dataSource.transaction(async (manager) => {
       // If status is changed to APPROVED and it wasn't approved before
-      if (status === WithdrawStatus.APPROVED && withdraw.status !== WithdrawStatus.APPROVED) {
-        const vendor = await manager.findOne(User, { where: { id: withdraw.vendor.id } });
+      if (
+        status === WithdrawStatus.APPROVED &&
+        withdraw.status !== WithdrawStatus.APPROVED
+      ) {
+        const vendor = await manager.findOne(User, {
+          where: { id: withdraw.vendor.id },
+        });
         if (vendor) {
-          vendor.wallet_balance = Number(vendor.wallet_balance) + Number(withdraw.amount);
+          vendor.wallet_balance =
+            Number(vendor.wallet_balance) + Number(withdraw.amount);
           await manager.save(vendor);
         }
       }
-      
+
       withdraw.status = status;
       if (admin_note) {
         withdraw.admin_note = admin_note;
       }
-      
+
       return await manager.save(withdraw);
     });
 
     if (status === WithdrawStatus.APPROVED) {
-      const vendor = await this.userRepository.findOne({ where: { id: withdraw.vendor.id } });
+      const vendor = await this.userRepository.findOne({
+        where: { id: withdraw.vendor.id },
+      });
       if (vendor && vendor.phone) {
         const message = `Your withdraw request for BDT ${withdraw.amount} has been approved.`;
-        this.smsService.sendMessage(vendor.phone, message).catch(err => {
+        this.smsService.sendMessage(vendor.phone, message).catch((err) => {
           console.error('Failed to send SMS on withdraw approval:', err);
         });
       }
-      
+
       // Trigger Notification
       const msg = `Your withdraw request for BDT ${withdraw.amount} has been approved.`;
       if (withdraw.vendor?.id) {
-        this.notificationService.createForUser(withdraw.vendor.id, msg, NotificationType.WITHDRAW).catch(e => console.error(e));
+        this.notificationService
+          .createForUser(withdraw.vendor.id, msg, NotificationType.WITHDRAW)
+          .catch((e) => console.error(e));
       }
     } else if (status === WithdrawStatus.REJECTED) {
       // Trigger Notification
       const msg = `Your withdraw request for BDT ${withdraw.amount} has been rejected.`;
       if (withdraw.vendor?.id) {
-        this.notificationService.createForUser(withdraw.vendor.id, msg, NotificationType.WITHDRAW).catch(e => console.error(e));
+        this.notificationService
+          .createForUser(withdraw.vendor.id, msg, NotificationType.WITHDRAW)
+          .catch((e) => console.error(e));
       }
     }
 

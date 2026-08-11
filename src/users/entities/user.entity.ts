@@ -1,4 +1,17 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, OneToMany, OneToOne, ManyToMany, JoinTable } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  DeleteDateColumn,
+  ManyToOne,
+  JoinColumn,
+  OneToMany,
+  OneToOne,
+  ManyToMany,
+  JoinTable,
+} from 'typeorm';
 import { Role } from '../../roles/entities/role.entity';
 import { Profile } from '../../profile/entities/profile.entity';
 import { Service } from '../../service/entities/service.entity';
@@ -30,14 +43,17 @@ export class User {
   @JoinColumn({ name: 'roleId' })
   role: Role;
 
-  @OneToOne(() => Profile, profile => profile.user)
+  @OneToOne(() => Profile, (profile) => profile.user)
   profile: Profile;
 
-  @ManyToOne(() => User, user => user.employees, { nullable: true, onDelete: 'SET NULL' })
+  @ManyToOne(() => User, (user) => user.employees, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
   @JoinColumn({ name: 'vendor_id' })
   vendor: User;
 
-  @OneToMany(() => User, user => user.vendor)
+  @OneToMany(() => User, (user) => user.vendor)
   employees: User[];
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })

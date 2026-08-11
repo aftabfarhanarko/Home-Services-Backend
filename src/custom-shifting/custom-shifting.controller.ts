@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus, UseGuards, Req } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  HttpStatus,
+  UseGuards,
+  Req,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Public } from '../auth/decorators/public.decorator';
 import { CustomShiftingService } from './custom-shifting.service';
@@ -66,7 +77,10 @@ export class CustomShiftingController {
 
   @UseGuards(JwtAuthGuard)
   @Patch(':id/assign')
-  async assignVendor(@Param('id') id: string, @Body('vendorId') vendorId: number) {
+  async assignVendor(
+    @Param('id') id: string,
+    @Body('vendorId') vendorId: number,
+  ) {
     const data = await this.shiftingService.assignVendor(+id, vendorId);
     return {
       statusCode: HttpStatus.OK,
@@ -77,7 +91,10 @@ export class CustomShiftingController {
 
   @UseGuards(JwtAuthGuard)
   @Patch(':id/status')
-  async updateStatus(@Param('id') id: string, @Body('status') status: ShiftingStatus) {
+  async updateStatus(
+    @Param('id') id: string,
+    @Body('status') status: ShiftingStatus,
+  ) {
     const data = await this.shiftingService.updateStatus(+id, status);
     return {
       statusCode: HttpStatus.OK,

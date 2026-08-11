@@ -23,13 +23,15 @@ export class NotificationService {
   }
 
   async createForSuperAdmins(message: string, type: NotificationType) {
-    const superAdmins = await this.usersService.findByRoleName(RoleType.SUPER_ADMIN);
-    const notifications = superAdmins.map(admin => 
+    const superAdmins = await this.usersService.findByRoleName(
+      RoleType.SUPER_ADMIN,
+    );
+    const notifications = superAdmins.map((admin) =>
       this.notificationRepository.create({
         userId: admin.id,
         message,
         type,
-      })
+      }),
     );
     if (notifications.length > 0) {
       await this.notificationRepository.save(notifications);
@@ -44,7 +46,9 @@ export class NotificationService {
   }
 
   async markAsRead(id: number, userId: number) {
-    const notification = await this.notificationRepository.findOne({ where: { id, userId } });
+    const notification = await this.notificationRepository.findOne({
+      where: { id, userId },
+    });
     if (!notification) {
       throw new NotFoundException(`Notification #${id} not found`);
     }

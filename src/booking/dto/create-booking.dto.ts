@@ -1,4 +1,13 @@
-import { IsString, IsOptional, IsNotEmpty, IsNumber, IsDateString, IsArray, Min, ValidateNested } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsNotEmpty,
+  IsNumber,
+  IsDateString,
+  IsArray,
+  Min,
+  ValidateNested,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class SubServiceItemDto {

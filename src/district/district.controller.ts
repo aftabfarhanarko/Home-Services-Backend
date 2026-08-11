@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  HttpStatus,
+} from '@nestjs/common';
 import { DistrictService } from './district.service';
 import { CreateDistrictDto } from './dto/create-district.dto';
 import { UpdateDistrictDto } from './dto/update-district.dto';
@@ -16,34 +26,56 @@ export class DistrictController {
   @Post()
   async create(@Body() createDistrictDto: CreateDistrictDto) {
     const data = await this.districtService.create(createDistrictDto);
-    return { statusCode: HttpStatus.CREATED, message: 'District created successfully', data };
+    return {
+      statusCode: HttpStatus.CREATED,
+      message: 'District created successfully',
+      data,
+    };
   }
 
   @Public()
   @Get()
   async findAll() {
     const data = await this.districtService.findAll();
-    return { statusCode: HttpStatus.OK, message: 'Districts retrieved successfully', data };
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Districts retrieved successfully',
+      data,
+    };
   }
 
   @Public()
   @Get(':id')
   async findOne(@Param('id') id: string) {
     const data = await this.districtService.findOne(+id);
-    return { statusCode: HttpStatus.OK, message: 'District retrieved successfully', data };
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'District retrieved successfully',
+      data,
+    };
   }
 
   @Roles('Super Admin')
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() updateDistrictDto: UpdateDistrictDto) {
+  async update(
+    @Param('id') id: string,
+    @Body() updateDistrictDto: UpdateDistrictDto,
+  ) {
     const data = await this.districtService.update(+id, updateDistrictDto);
-    return { statusCode: HttpStatus.OK, message: 'District updated successfully', data };
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'District updated successfully',
+      data,
+    };
   }
 
   @Roles('Super Admin')
   @Delete(':id')
   async remove(@Param('id') id: string) {
     await this.districtService.remove(+id);
-    return { statusCode: HttpStatus.OK, message: 'District deleted successfully' };
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'District deleted successfully',
+    };
   }
 }

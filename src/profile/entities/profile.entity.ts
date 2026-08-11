@@ -1,4 +1,15 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn, ManyToMany, JoinTable, ManyToOne } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToOne,
+  JoinColumn,
+  ManyToMany,
+  JoinTable,
+  ManyToOne,
+} from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { Category } from '../../category/entities/category.entity';
 import { Devision } from '../../devision/entities/devision.entity';
@@ -15,7 +26,7 @@ export class Profile {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @OneToOne(() => User, user => user.profile, { onDelete: 'CASCADE' })
+  @OneToOne(() => User, (user) => user.profile, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
   user: User;
 
@@ -85,7 +96,7 @@ export class Profile {
   @JoinTable({
     name: 'profile_categories',
     joinColumn: { name: 'profile_id', referencedColumnName: 'id' },
-    inverseJoinColumn: { name: 'category_id', referencedColumnName: 'id' }
+    inverseJoinColumn: { name: 'category_id', referencedColumnName: 'id' },
   })
   categories: Category[];
 

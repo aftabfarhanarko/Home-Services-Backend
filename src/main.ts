@@ -15,12 +15,13 @@ let appInstance: any;
 async function bootstrap() {
   if (!isAppInitialized) {
     // Required to prevent serving assets synchronously in serverless without a directory
-    const expressAdapter = new (require('@nestjs/platform-express').ExpressAdapter)(server);
-    
+    const expressAdapter =
+      new (require('@nestjs/platform-express').ExpressAdapter)(server);
+
     appInstance = await NestFactory.create<NestExpressApplication>(
       AppModule,
       expressAdapter,
-      { logger: ['error', 'warn', 'log'] }
+      { logger: ['error', 'warn', 'log'] },
     );
 
     // Disable static assets in serverless mode if directory doesn't exist, else wrap it
@@ -68,7 +69,8 @@ async function bootstrap() {
       .setVersion('1.0')
       .addBearerAuth()
       .build();
-    const documentFactory = () => SwaggerModule.createDocument(appInstance, config);
+    const documentFactory = () =>
+      SwaggerModule.createDocument(appInstance, config);
     SwaggerModule.setup('api/docs', appInstance, documentFactory);
 
     await appInstance.init();

@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Patch, Body, Param, Query, UseGuards, Req } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Body,
+  Param,
+  Query,
+  UseGuards,
+  Req,
+} from '@nestjs/common';
 import { HelpService } from './help.service';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { AddReplyDto } from './dto/add-reply.dto';
@@ -107,7 +117,11 @@ export class HelpController {
     @Body() dto: AddReplyDto,
   ) {
     const adminUserId = req.user.sub || req.user.userId || req.user.id;
-    const data = await this.helpService.addAdminReply(+id, adminUserId, dto.message);
+    const data = await this.helpService.addAdminReply(
+      +id,
+      adminUserId,
+      dto.message,
+    );
     return {
       success: true,
       data,

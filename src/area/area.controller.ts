@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  HttpStatus,
+} from '@nestjs/common';
 import { AreaService } from './area.service';
 import { CreateAreaDto } from './dto/create-area.dto';
 import { UpdateAreaDto } from './dto/update-area.dto';
@@ -16,28 +26,44 @@ export class AreaController {
   @Post()
   async create(@Body() createAreaDto: CreateAreaDto) {
     const data = await this.areaService.create(createAreaDto);
-    return { statusCode: HttpStatus.CREATED, message: 'Area created successfully', data };
+    return {
+      statusCode: HttpStatus.CREATED,
+      message: 'Area created successfully',
+      data,
+    };
   }
 
   @Public()
   @Get()
   async findAll() {
     const data = await this.areaService.findAll();
-    return { statusCode: HttpStatus.OK, message: 'Areas retrieved successfully', data };
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Areas retrieved successfully',
+      data,
+    };
   }
 
   @Public()
   @Get(':id')
   async findOne(@Param('id') id: string) {
     const data = await this.areaService.findOne(+id);
-    return { statusCode: HttpStatus.OK, message: 'Area retrieved successfully', data };
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Area retrieved successfully',
+      data,
+    };
   }
 
   @Roles('Super Admin')
   @Patch(':id')
   async update(@Param('id') id: string, @Body() updateAreaDto: UpdateAreaDto) {
     const data = await this.areaService.update(+id, updateAreaDto);
-    return { statusCode: HttpStatus.OK, message: 'Area updated successfully', data };
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Area updated successfully',
+      data,
+    };
   }
 
   @Roles('Super Admin')

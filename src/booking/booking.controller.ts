@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus, UseGuards, Req } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  HttpStatus,
+  UseGuards,
+  Req,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Public } from '../auth/decorators/public.decorator';
 import { BookingService } from './booking.service';
@@ -15,7 +26,11 @@ export class BookingController {
   @Post()
   async create(@Req() req: any, @Body() createBookingDto: CreateBookingDto) {
     const userId = req.user?.sub || createBookingDto.user_id || 1;
-    const data = await this.bookingService.create(createBookingDto, userId, req.user);
+    const data = await this.bookingService.create(
+      createBookingDto,
+      userId,
+      req.user,
+    );
     return {
       statusCode: HttpStatus.CREATED,
       message: 'Booking created successfully',
@@ -77,7 +92,10 @@ export class BookingController {
   }
 
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() updateBookingDto: UpdateBookingDto) {
+  async update(
+    @Param('id') id: string,
+    @Body() updateBookingDto: UpdateBookingDto,
+  ) {
     const data = await this.bookingService.update(+id, updateBookingDto);
     return {
       statusCode: HttpStatus.OK,
@@ -87,7 +105,10 @@ export class BookingController {
   }
 
   @Post(':id/assign')
-  async assignEmployees(@Param('id') id: string, @Body('employee_ids') employeeIds: number[]) {
+  async assignEmployees(
+    @Param('id') id: string,
+    @Body('employee_ids') employeeIds: number[],
+  ) {
     const data = await this.bookingService.assignEmployees(+id, employeeIds);
     return {
       statusCode: HttpStatus.OK,
@@ -97,7 +118,10 @@ export class BookingController {
   }
 
   @Patch(':id/status')
-  async updateStatus(@Param('id') id: string, @Body('status') status: BookingStatus) {
+  async updateStatus(
+    @Param('id') id: string,
+    @Body('status') status: BookingStatus,
+  ) {
     const data = await this.bookingService.updateStatus(+id, status);
     return {
       statusCode: HttpStatus.OK,

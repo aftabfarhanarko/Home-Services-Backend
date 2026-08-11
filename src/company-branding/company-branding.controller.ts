@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  HttpStatus,
+} from '@nestjs/common';
 import { CompanyBrandingService } from './company-branding.service';
 import { CreateCompanyBrandingDto } from './dto/create-company-branding.dto';
 import { UpdateCompanyBrandingDto } from './dto/update-company-branding.dto';

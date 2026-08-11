@@ -1,4 +1,11 @@
-import { Controller, Get, Param, UseGuards, Request, Patch } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  UseGuards,
+  Request,
+  Patch,
+} from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
@@ -8,7 +15,10 @@ export class ChatController {
   constructor(private readonly chatService: ChatService) {}
 
   @Get('history/:otherUserId')
-  async getChatHistory(@Request() req, @Param('otherUserId') otherUserId: string) {
+  async getChatHistory(
+    @Request() req,
+    @Param('otherUserId') otherUserId: string,
+  ) {
     const currentUserId = req.user.sub;
     return this.chatService.getChatHistory(currentUserId, Number(otherUserId));
   }

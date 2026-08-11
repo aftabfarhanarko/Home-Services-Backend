@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  HttpStatus,
+  UseGuards,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Public } from '../auth/decorators/public.decorator';
 import { CustomRequestService } from './custom-request.service';
@@ -44,7 +54,10 @@ export class CustomRequestController {
 
   @UseGuards(JwtAuthGuard)
   @Patch(':id/status')
-  async updateStatus(@Param('id') id: string, @Body('status') status: CustomRequestStatus) {
+  async updateStatus(
+    @Param('id') id: string,
+    @Body('status') status: CustomRequestStatus,
+  ) {
     const data = await this.customRequestService.updateStatus(+id, status);
     return {
       statusCode: HttpStatus.OK,

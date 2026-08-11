@@ -12,7 +12,17 @@ import { Review } from '../review/entities/review.entity';
 import { Service } from '../service/entities/service.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Booking, User, Withdraw, Role, Category, Review, Service])],
+  imports: [
+    TypeOrmModule.forFeature([
+      Booking,
+      User,
+      Withdraw,
+      Role,
+      Category,
+      Review,
+      Service,
+    ]),
+  ],
   controllers: [DashboardController],
   providers: [DashboardService],
 })

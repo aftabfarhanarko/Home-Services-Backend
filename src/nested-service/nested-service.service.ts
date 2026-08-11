@@ -10,24 +10,26 @@ export class NestedServiceService {
   constructor(
     @InjectRepository(NestedService)
     private readonly nestedServiceRepository: Repository<NestedService>,
-  ) { }
+  ) {}
 
   async create(createNestedServiceDto: CreateNestedServiceDto) {
     const nestedService = this.nestedServiceRepository.create({
       ...createNestedServiceDto,
       service: { id: createNestedServiceDto.service_id },
       is_contact_for_price: !!createNestedServiceDto.is_contact_for_price,
-      subServices: createNestedServiceDto.sub_services ? createNestedServiceDto.sub_services.map(sub => ({
-        name: sub.name,
-        price: sub.price,
-        is_contact_for_price: !!sub.is_contact_for_price,
-        agent_commission_percentage: sub.agent_commission_percentage || 0,
-        vendor_commission_percentage: sub.vendor_commission_percentage || 0,
-        description: sub.description,
-        image1: sub.image1,
-        image2: sub.image2,
-        faq: sub.faq || [],
-      })) : [],
+      subServices: createNestedServiceDto.sub_services
+        ? createNestedServiceDto.sub_services.map((sub) => ({
+            name: sub.name,
+            price: sub.price,
+            is_contact_for_price: !!sub.is_contact_for_price,
+            agent_commission_percentage: sub.agent_commission_percentage || 0,
+            vendor_commission_percentage: sub.vendor_commission_percentage || 0,
+            description: sub.description,
+            image1: sub.image1,
+            image2: sub.image2,
+            faq: sub.faq || [],
+          }))
+        : [],
     });
     return await this.nestedServiceRepository.save(nestedService);
   }
@@ -70,20 +72,23 @@ export class NestedServiceService {
     }
     Object.assign(nestedService, updateNestedServiceDto);
     if (updateNestedServiceDto.is_contact_for_price !== undefined) {
-      nestedService.is_contact_for_price = !!updateNestedServiceDto.is_contact_for_price;
+      nestedService.is_contact_for_price =
+        !!updateNestedServiceDto.is_contact_for_price;
     }
     if (updateNestedServiceDto.sub_services) {
-      nestedService.subServices = updateNestedServiceDto.sub_services.map(sub => ({
-        name: sub.name,
-        price: sub.price,
-        is_contact_for_price: !!sub.is_contact_for_price,
-        agent_commission_percentage: sub.agent_commission_percentage || 0,
-        vendor_commission_percentage: sub.vendor_commission_percentage || 0,
-        description: sub.description,
-        image1: sub.image1,
-        image2: sub.image2,
-        faq: sub.faq || [],
-      })) as any;
+      nestedService.subServices = updateNestedServiceDto.sub_services.map(
+        (sub) => ({
+          name: sub.name,
+          price: sub.price,
+          is_contact_for_price: !!sub.is_contact_for_price,
+          agent_commission_percentage: sub.agent_commission_percentage || 0,
+          vendor_commission_percentage: sub.vendor_commission_percentage || 0,
+          description: sub.description,
+          image1: sub.image1,
+          image2: sub.image2,
+          faq: sub.faq || [],
+        }),
+      ) as any;
     }
     return await this.nestedServiceRepository.save(nestedService);
   }

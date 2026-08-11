@@ -45,10 +45,16 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('sendMessage')
   async handleMessage(
     @ConnectedSocket() client: Socket,
-    @MessageBody() payload: { receiverId: number; content: string; imageUrl?: string },
+    @MessageBody()
+    payload: { receiverId: number; content: string; imageUrl?: string },
   ) {
     const senderId = Number(client.handshake.query.userId);
-    if (!senderId || !payload.receiverId || (!payload.content && !payload.imageUrl)) return;
+    if (
+      !senderId ||
+      !payload.receiverId ||
+      (!payload.content && !payload.imageUrl)
+    )
+      return;
 
     // Save to DB
     const message = await this.chatService.saveMessage(
@@ -60,10 +66,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     // Emit to receiver's room
     this.server.to(payload.receiverId.toString()).emit('newMessage', message);
-    
+
     // Also emit back to sender to confirm
     client.emit('messageSent', message);
-    
+
     // If it's a new conversation, we might want to alert the receiver's inbox
     this.server.to(payload.receiverId.toString()).emit('inboxUpdate', message);
   }

@@ -20,7 +20,9 @@ export class ServiceService {
   async create(createServiceDto: CreateServiceDto) {
     const serviceData: any = { ...createServiceDto };
     if (createServiceDto.employee_ids) {
-      serviceData.employees = createServiceDto.employee_ids.map(id => ({ id }));
+      serviceData.employees = createServiceDto.employee_ids.map((id) => ({
+        id,
+      }));
       delete serviceData.employee_ids;
     }
     if (createServiceDto.category_id) {
@@ -31,13 +33,17 @@ export class ServiceService {
       serviceData.vendor = { id: createServiceDto.vendor_id };
       delete serviceData.vendor_id;
     }
-    const service = this.serviceRepository.create(serviceData as DeepPartial<Service>);
+    const service = this.serviceRepository.create(
+      serviceData as DeepPartial<Service>,
+    );
     const savedService = await this.serviceRepository.save(service);
-    
+
     // Trigger Notification
     const msg = `New service '${savedService.name}' has been created.`;
-    this.notificationService.createForSuperAdmins(msg, NotificationType.SERVICE).catch(e => console.error(e));
-    
+    this.notificationService
+      .createForSuperAdmins(msg, NotificationType.SERVICE)
+      .catch((e) => console.error(e));
+
     return savedService;
   }
 
@@ -45,30 +51,70 @@ export class ServiceService {
     let services: Service[];
     if (!user) {
       services = await this.serviceRepository.find({
-        relations: { nestedServices: { subServices: true }, packages: true, employees: true, vendor: true, category: true, reviews: true, bookings: true },
+        relations: {
+          nestedServices: { subServices: true },
+          packages: true,
+          employees: true,
+          vendor: true,
+          category: true,
+          reviews: true,
+          bookings: true,
+        },
       });
     } else {
       const roleName = user?.role?.toLowerCase() || '';
-      if (roleName === 'super admin' || roleName === 'superadmin' || roleName === 'admin' || roleName === 'agent' || roleName === 'client') {
+      if (
+        roleName === 'super admin' ||
+        roleName === 'superadmin' ||
+        roleName === 'admin' ||
+        roleName === 'agent' ||
+        roleName === 'client'
+      ) {
         services = await this.serviceRepository.find({
-          relations: { nestedServices: { subServices: true }, packages: true, employees: true, vendor: true, category: true, reviews: true, bookings: true },
+          relations: {
+            nestedServices: { subServices: true },
+            packages: true,
+            employees: true,
+            vendor: true,
+            category: true,
+            reviews: true,
+            bookings: true,
+          },
         });
       } else if (roleName === 'vendor') {
         services = await this.serviceRepository.find({
           where: { vendor: { id: user.sub } },
-          relations: { nestedServices: { subServices: true }, packages: true, employees: true, vendor: true, category: true, reviews: true, bookings: true },
+          relations: {
+            nestedServices: { subServices: true },
+            packages: true,
+            employees: true,
+            vendor: true,
+            category: true,
+            reviews: true,
+            bookings: true,
+          },
         });
       } else {
         services = await this.serviceRepository.find({
           where: { employees: { id: user.sub } },
-          relations: { nestedServices: { subServices: true }, packages: true, employees: true, vendor: true, category: true, reviews: true, bookings: true },
+          relations: {
+            nestedServices: { subServices: true },
+            packages: true,
+            employees: true,
+            vendor: true,
+            category: true,
+            reviews: true,
+            bookings: true,
+          },
         });
       }
     }
 
-    services.forEach(s => {
+    services.forEach((s) => {
       if (s.bookings) {
-        s.bookings = s.bookings.filter(b => b.status === BookingStatus.COMPLETED);
+        s.bookings = s.bookings.filter(
+          (b) => b.status === BookingStatus.COMPLETED,
+        );
       }
     });
 
@@ -91,11 +137,15 @@ export class ServiceService {
       .where('service.deletedAt IS NULL');
 
     if (params.category_id) {
-      qb.andWhere('category.id = :categoryId', { categoryId: params.category_id });
+      qb.andWhere('category.id = :categoryId', {
+        categoryId: params.category_id,
+      });
     }
 
     if (params.devision_id) {
-      qb.andWhere('devision.id = :devisionId', { devisionId: params.devision_id });
+      qb.andWhere('devision.id = :devisionId', {
+        devisionId: params.devision_id,
+      });
     }
 
     if (params.q?.trim()) {
@@ -119,9 +169,11 @@ export class ServiceService {
     }
 
     const services = await qb.orderBy('service.createdAt', 'DESC').getMany();
-    services.forEach(s => {
+    services.forEach((s) => {
       if (s.bookings) {
-        s.bookings = s.bookings.filter(b => b.status === BookingStatus.COMPLETED);
+        s.bookings = s.bookings.filter(
+          (b) => b.status === BookingStatus.COMPLETED,
+        );
       }
     });
     return services;
@@ -130,13 +182,23 @@ export class ServiceService {
   async findOne(id: number) {
     const service = await this.serviceRepository.findOne({
       where: { id },
-      relations: { nestedServices: { subServices: true }, packages: true, employees: true, vendor: true, category: true, reviews: true, bookings: true },
+      relations: {
+        nestedServices: { subServices: true },
+        packages: true,
+        employees: true,
+        vendor: true,
+        category: true,
+        reviews: true,
+        bookings: true,
+      },
     });
     if (!service) {
       throw new NotFoundException(`Service with ID ${id} not found`);
     }
     if (service.bookings) {
-      service.bookings = service.bookings.filter(b => b.status === BookingStatus.COMPLETED);
+      service.bookings = service.bookings.filter(
+        (b) => b.status === BookingStatus.COMPLETED,
+      );
     }
     return service;
   }
@@ -144,17 +206,19 @@ export class ServiceService {
   async update(id: number, updateServiceDto: UpdateServiceDto) {
     const service = await this.findOne(id);
     const updateData: any = { ...updateServiceDto };
-    
+
     if (updateServiceDto.employee_ids) {
-      updateData.employees = updateServiceDto.employee_ids.map(eId => ({ id: eId }));
+      updateData.employees = updateServiceDto.employee_ids.map((eId) => ({
+        id: eId,
+      }));
       delete updateData.employee_ids;
     }
-    
+
     if (updateServiceDto.category_id) {
       updateData.category = { id: updateServiceDto.category_id };
       delete updateData.category_id;
     }
-    
+
     if (updateServiceDto.vendor_id) {
       updateData.vendor = { id: updateServiceDto.vendor_id };
       delete updateData.vendor_id;

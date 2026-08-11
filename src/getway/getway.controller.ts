@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { GetwayService } from './getway.service';
 import { CreateGetwayDto } from './dto/create-getway.dto';
 import { UpdateGetwayDto } from './dto/update-getway.dto';

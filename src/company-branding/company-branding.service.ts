@@ -12,7 +12,9 @@ export class CompanyBrandingService {
     private readonly brandingRepository: Repository<CompanyBranding>,
   ) {}
 
-  async createOrUpdate(dto: CreateCompanyBrandingDto): Promise<CompanyBranding> {
+  async createOrUpdate(
+    dto: CreateCompanyBrandingDto,
+  ): Promise<CompanyBranding> {
     const existing = await this.brandingRepository.find({
       order: { id: 'ASC' },
       take: 1,
@@ -44,7 +46,10 @@ export class CompanyBrandingService {
     return existing[0];
   }
 
-  async update(id: number, dto: UpdateCompanyBrandingDto): Promise<CompanyBranding> {
+  async update(
+    id: number,
+    dto: UpdateCompanyBrandingDto,
+  ): Promise<CompanyBranding> {
     const branding = await this.brandingRepository.preload({
       id,
       ...dto,

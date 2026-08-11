@@ -1,7 +1,14 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CustomShifting, ShiftingStatus } from './entities/custom-shifting.entity';
+import {
+  CustomShifting,
+  ShiftingStatus,
+} from './entities/custom-shifting.entity';
 import { CreateCustomShiftingDto } from './dto/create-custom-shifting.dto';
 import { User } from '../users/entities/user.entity';
 import { SmsService } from '../sms/sms.service';
@@ -26,7 +33,7 @@ export class CustomShiftingService {
       destinationAddress: createDto.destinationAddress,
       images: createDto.images || [],
       status: ShiftingStatus.PENDING,
-      user: createDto.userId ? { id: createDto.userId } as any : undefined,
+      user: createDto.userId ? ({ id: createDto.userId } as any) : undefined,
     });
 
     return this.shiftingRepository.save(shifting);
@@ -68,7 +75,9 @@ export class CustomShiftingService {
     });
 
     if (!booking) {
-      throw new NotFoundException(`Custom shifting booking with ID ${id} not found`);
+      throw new NotFoundException(
+        `Custom shifting booking with ID ${id} not found`,
+      );
     }
 
     return booking;
@@ -92,7 +101,7 @@ export class CustomShiftingService {
 
   async assignVendor(id: number, vendorId: number): Promise<CustomShifting> {
     const booking = await this.findOne(id);
-    
+
     // Verify vendor exists and has Vendor role
     const vendor = await this.userRepository.findOne({
       where: { id: vendorId },
@@ -121,7 +130,10 @@ export class CustomShiftingService {
     return saved;
   }
 
-  async updateStatus(id: number, status: ShiftingStatus): Promise<CustomShifting> {
+  async updateStatus(
+    id: number,
+    status: ShiftingStatus,
+  ): Promise<CustomShifting> {
     const booking = await this.findOne(id);
     booking.status = status;
     return this.shiftingRepository.save(booking);

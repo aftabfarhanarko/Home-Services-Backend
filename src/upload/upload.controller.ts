@@ -1,4 +1,11 @@
-import { Controller, Post, UseInterceptors, UploadedFile, BadRequestException, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
+  HttpStatus,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname, join } from 'path';
@@ -28,7 +35,10 @@ export class UploadController {
       }),
       fileFilter: (req, file, cb) => {
         if (!file.mimetype.match(/\/(jpg|jpeg|png|gif|webp|svg\+xml)$/)) {
-          return cb(new BadRequestException('Only image files are allowed!'), false);
+          return cb(
+            new BadRequestException('Only image files are allowed!'),
+            false,
+          );
         }
         cb(null, true);
       },
@@ -39,11 +49,15 @@ export class UploadController {
   )
   uploadFile(@UploadedFile() file: any) {
     if (!file) {
-      throw new BadRequestException('No file uploaded or file is not supported');
+      throw new BadRequestException(
+        'No file uploaded or file is not supported',
+      );
     }
-    
+
     // Build full image URL
-    const host = process.env.APP_URL || 'http://r9m77f0yp91zaqi9xf0jqc9h.200.141.14.181.sslip.io';
+    const host =
+      process.env.APP_URL ||
+      'http://r9m77f0yp91zaqi9xf0jqc9h.200.141.14.181.sslip.io';
     const url = `${host}/uploads/${file.filename}`;
 
     return {

@@ -1,4 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  CreateDateColumn,
+  UpdateDateColumn,
+  JoinColumn,
+} from 'typeorm';
 import { District } from '../../district/entities/district.entity';
 
 @Entity('areas')
@@ -21,7 +29,9 @@ export class Area {
   @Column({ nullable: true })
   latitude: string;
 
-  @ManyToOne(() => District, district => district.areas, { onDelete: 'CASCADE' })
+  @ManyToOne(() => District, (district) => district.areas, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'district_id' })
   district: District;
 

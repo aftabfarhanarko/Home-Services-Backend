@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus, UseGuards, Req } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  HttpStatus,
+  UseGuards,
+  Req,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../roles/guards/roles.guard';
 import { Roles } from '../roles/decorators/roles.decorator';
@@ -9,7 +20,7 @@ import { UpdatePackageDto } from './dto/update-package.dto';
 
 @Controller('packages')
 export class PackageController {
-  constructor(private readonly packageService: PackageService) { }
+  constructor(private readonly packageService: PackageService) {}
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(RoleType.SUPER_ADMIN, RoleType.VENDOR)
@@ -61,7 +72,10 @@ export class PackageController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(RoleType.SUPER_ADMIN, RoleType.VENDOR)
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() updatePackageDto: UpdatePackageDto) {
+  async update(
+    @Param('id') id: string,
+    @Body() updatePackageDto: UpdatePackageDto,
+  ) {
     const data = await this.packageService.update(+id, updatePackageDto);
     return {
       statusCode: HttpStatus.OK,

@@ -1,6 +1,16 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, Index } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  DeleteDateColumn,
+  ManyToOne,
+  JoinColumn,
+  Index,
+} from 'typeorm';
 import { User } from '../../users/entities/user.entity';
-import { Getway } from "../../getway/entities/getway.entity";
+import { Getway } from '../../getway/entities/getway.entity';
 import { Booking } from '../../booking/entities/booking.entity';
 
 export enum WithdrawStatus {

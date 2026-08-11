@@ -1,7 +1,14 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Not, LessThan } from 'typeorm';
-import { ManualInvoice, PaymentStatus } from '../entities/manual-invoice.entity';
+import {
+  ManualInvoice,
+  PaymentStatus,
+} from '../entities/manual-invoice.entity';
 import { ManualService } from '../entities/manual-service.entity';
 
 @Injectable()
@@ -36,7 +43,10 @@ export class ManualInvoiceService {
         deletedAt: LessThan(fourteenDaysAgo),
       });
     } catch (err) {
-      console.error('Failed to dynamically purge expired trashed invoices:', err);
+      console.error(
+        'Failed to dynamically purge expired trashed invoices:',
+        err,
+      );
     }
 
     return await this.invoiceRepo.find({
@@ -75,15 +85,25 @@ export class ManualInvoiceService {
       paymentStatus,
     } = dto;
 
-    if (!invoiceNumber || !customer || !items || items.length === 0 || !amountInWords) {
-      throw new BadRequestException('Invoice number, customer, items, and amount in words are required');
+    if (
+      !invoiceNumber ||
+      !customer ||
+      !items ||
+      items.length === 0 ||
+      !amountInWords
+    ) {
+      throw new BadRequestException(
+        'Invoice number, customer, items, and amount in words are required',
+      );
     }
 
     // 2. Dynamic Service Upsert
     for (const item of items) {
       if (item.description && item.rate > 0) {
         const nameTrim = item.description.trim();
-        const existingService = await this.serviceRepo.findOne({ where: { name: nameTrim } });
+        const existingService = await this.serviceRepo.findOne({
+          where: { name: nameTrim },
+        });
         if (existingService) {
           existingService.rate = Number(item.rate);
           await this.serviceRepo.save(existingService);
@@ -98,9 +118,13 @@ export class ManualInvoiceService {
     }
 
     // Check if invoice number already exists
-    const existingInvoiceNumber = await this.invoiceRepo.findOne({ where: { invoiceNumber: invoiceNumber.trim() } });
+    const existingInvoiceNumber = await this.invoiceRepo.findOne({
+      where: { invoiceNumber: invoiceNumber.trim() },
+    });
     if (existingInvoiceNumber) {
-      throw new BadRequestException(`Invoice number "${invoiceNumber}" already exists.`);
+      throw new BadRequestException(
+        `Invoice number "${invoiceNumber}" already exists.`,
+      );
     }
 
     // 3. Create and Save the Invoice
@@ -121,11 +145,22 @@ export class ManualInvoiceService {
         rate: Number(item.rate),
         amount: Number(item.amount || item.qty * item.rate),
       })),
-      totalAmount: Number(totalAmount !== undefined && totalAmount !== null ? totalAmount : items.reduce((acc: number, curr: any) => acc + curr.qty * curr.rate, 0)),
-      discount: (discount !== undefined && discount !== null && discount !== '') ? Number(discount) : 0,
-      totalPayableAmount: totalPayableAmount !== undefined && totalPayableAmount !== null
-        ? Number(totalPayableAmount)
-        : Math.max(0, Number(totalAmount || 0) - Number(discount || 0)),
+      totalAmount: Number(
+        totalAmount !== undefined && totalAmount !== null
+          ? totalAmount
+          : items.reduce(
+              (acc: number, curr: any) => acc + curr.qty * curr.rate,
+              0,
+            ),
+      ),
+      discount:
+        discount !== undefined && discount !== null && discount !== ''
+          ? Number(discount)
+          : 0,
+      totalPayableAmount:
+        totalPayableAmount !== undefined && totalPayableAmount !== null
+          ? Number(totalPayableAmount)
+          : Math.max(0, Number(totalAmount || 0) - Number(discount || 0)),
       amountInWords: amountInWords.trim(),
       templateName: templateName || 'template1',
       paymentOptions: paymentOptions || {
@@ -138,9 +173,15 @@ export class ManualInvoiceService {
       signeeName: signeeName ? signeeName.trim() : 'Ariful Islam Arif',
       signeeRole: signeeRole ? signeeRole.trim() : 'CEO, Rajseba Design Studio',
       paidAmount: Number(paidAmount) || 0,
-      dueAmount: dueAmount !== undefined && dueAmount !== null
-        ? Number(dueAmount)
-        : Math.max(0, (totalPayableAmount !== undefined ? Number(totalPayableAmount) : 0) - (Number(paidAmount) || 0)),
+      dueAmount:
+        dueAmount !== undefined && dueAmount !== null
+          ? Number(dueAmount)
+          : Math.max(
+              0,
+              (totalPayableAmount !== undefined
+                ? Number(totalPayableAmount)
+                : 0) - (Number(paidAmount) || 0),
+            ),
       paymentStatus: paymentStatus || PaymentStatus.DUE,
       status: 'active',
     });
@@ -156,7 +197,9 @@ export class ManualInvoiceService {
     return { message: 'Invoice moved to trash successfully' };
   }
 
-  async restoreInvoice(id: number): Promise<{ message: string; invoice: ManualInvoice }> {
+  async restoreInvoice(
+    id: number,
+  ): Promise<{ message: string; invoice: ManualInvoice }> {
     const invoice = await this.findOneInvoice(id);
     invoice.status = 'active';
     invoice.deletedAt = null;
@@ -175,7 +218,9 @@ export class ManualInvoiceService {
     const paymentValue = Number(amountPaid);
 
     if (isNaN(paymentValue) || paymentValue <= 0) {
-      throw new BadRequestException('Invalid payment amount. Must be a positive number.');
+      throw new BadRequestException(
+        'Invalid payment amount. Must be a positive number.',
+      );
     }
 
     const currentPaid = Number(invoice.paidAmount || 0);
@@ -217,8 +262,13 @@ export class ManualInvoiceService {
     if (invoiceNumber !== undefined) {
       const trimmed = invoiceNumber.trim();
       if (trimmed !== invoice.invoiceNumber) {
-        const conflict = await this.invoiceRepo.findOne({ where: { invoiceNumber: trimmed } });
-        if (conflict) throw new BadRequestException(`Invoice number "${trimmed}" already exists.`);
+        const conflict = await this.invoiceRepo.findOne({
+          where: { invoiceNumber: trimmed },
+        });
+        if (conflict)
+          throw new BadRequestException(
+            `Invoice number "${trimmed}" already exists.`,
+          );
         invoice.invoiceNumber = trimmed;
       }
     }
@@ -243,22 +293,29 @@ export class ManualInvoiceService {
     }
 
     // Recalculate financials
-    const subtotal = totalAmount !== undefined && totalAmount !== null
-      ? Number(totalAmount)
-      : invoice.items.reduce((acc: number, i: any) => acc + i.amount, 0);
+    const subtotal =
+      totalAmount !== undefined && totalAmount !== null
+        ? Number(totalAmount)
+        : invoice.items.reduce((acc: number, i: any) => acc + i.amount, 0);
 
-    const discountVal = (discount !== undefined && discount !== null && discount !== '')
-      ? Number(discount)
-      : Number(invoice.discount || 0);
+    const discountVal =
+      discount !== undefined && discount !== null && discount !== ''
+        ? Number(discount)
+        : Number(invoice.discount || 0);
 
-    const payable = totalPayableAmount !== undefined && totalPayableAmount !== null
-      ? Number(totalPayableAmount)
-      : Math.max(0, subtotal - discountVal);
+    const payable =
+      totalPayableAmount !== undefined && totalPayableAmount !== null
+        ? Number(totalPayableAmount)
+        : Math.max(0, subtotal - discountVal);
 
-    const paid = paidAmount !== undefined ? Number(paidAmount) : Number(invoice.paidAmount || 0);
-    const due = dueAmount !== undefined && dueAmount !== null
-      ? Number(dueAmount)
-      : Math.max(0, payable - paid);
+    const paid =
+      paidAmount !== undefined
+        ? Number(paidAmount)
+        : Number(invoice.paidAmount || 0);
+    const due =
+      dueAmount !== undefined && dueAmount !== null
+        ? Number(dueAmount)
+        : Math.max(0, payable - paid);
 
     invoice.totalAmount = subtotal;
     invoice.discount = discountVal;
@@ -267,7 +324,8 @@ export class ManualInvoiceService {
     invoice.dueAmount = due;
     invoice.paymentStatus = due === 0 ? PaymentStatus.PAID : PaymentStatus.DUE;
 
-    if (amountInWords !== undefined) invoice.amountInWords = amountInWords.trim();
+    if (amountInWords !== undefined)
+      invoice.amountInWords = amountInWords.trim();
     if (templateName !== undefined) invoice.templateName = templateName;
     if (paymentOptions !== undefined) invoice.paymentOptions = paymentOptions;
     if (signeeName !== undefined) invoice.signeeName = signeeName.trim();
@@ -276,7 +334,6 @@ export class ManualInvoiceService {
 
     return await this.invoiceRepo.save(invoice);
   }
-
 
   // ==========================================
   // SERVICE SERVICE METHODS

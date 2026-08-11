@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus, UseGuards, Req } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  HttpStatus,
+  UseGuards,
+  Req,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ReviewService } from './review.service';
 import { CreateReviewDto } from './dto/create-review.dto';
@@ -23,7 +34,7 @@ export class ReviewController {
       return {
         statusCode: 500,
         message: error.message || 'Internal server error',
-        error: error.stack
+        error: error.stack,
       };
     }
   }
@@ -69,7 +80,10 @@ export class ReviewController {
   }
 
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() updateReviewDto: UpdateReviewDto) {
+  async update(
+    @Param('id') id: string,
+    @Body() updateReviewDto: UpdateReviewDto,
+  ) {
     const data = await this.reviewService.update(+id, updateReviewDto);
     return {
       statusCode: HttpStatus.OK,

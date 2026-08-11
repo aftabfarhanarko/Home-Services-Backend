@@ -58,10 +58,12 @@ import { UploadModule } from './upload/upload.module';
       }),
       inject: [ConfigService],
     }),
-    ThrottlerModule.forRoot([{
-      ttl: 60000,
-      limit: 12000, // High rate limit to avoid slowing down API responses
-    }]),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000,
+        limit: 12000, // High rate limit to avoid slowing down API responses
+      },
+    ]),
     CacheModule.register({
       isGlobal: true,
       ttl: 300000, // Increase cache TTL to 5 minutes for faster data delivery

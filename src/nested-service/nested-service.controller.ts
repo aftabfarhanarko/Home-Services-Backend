@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus, UseGuards, Req } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  HttpStatus,
+  UseGuards,
+  Req,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../roles/guards/roles.guard';
 import { Roles } from '../roles/decorators/roles.decorator';
@@ -9,7 +20,7 @@ import { UpdateNestedServiceDto } from './dto/update-nested-service.dto';
 
 @Controller('nested-services')
 export class NestedServiceController {
-  constructor(private readonly nestedServiceService: NestedServiceService) { }
+  constructor(private readonly nestedServiceService: NestedServiceService) {}
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(RoleType.SUPER_ADMIN, RoleType.VENDOR)
@@ -56,8 +67,14 @@ export class NestedServiceController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(RoleType.SUPER_ADMIN, RoleType.VENDOR)
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() updateNestedServiceDto: UpdateNestedServiceDto) {
-    const data = await this.nestedServiceService.update(+id, updateNestedServiceDto);
+  async update(
+    @Param('id') id: string,
+    @Body() updateNestedServiceDto: UpdateNestedServiceDto,
+  ) {
+    const data = await this.nestedServiceService.update(
+      +id,
+      updateNestedServiceDto,
+    );
     return {
       statusCode: HttpStatus.OK,
       message: 'Nested Service updated successfully',

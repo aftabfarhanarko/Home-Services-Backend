@@ -1,4 +1,16 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, HttpStatus, Req, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  HttpStatus,
+  Req,
+  Query,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -10,7 +22,7 @@ import { Public } from '../auth/decorators/public.decorator';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) { }
+  constructor(private readonly usersService: UsersService) {}
 
   @Public()
   @Post()
@@ -36,7 +48,9 @@ export class UsersController {
 
   @Get('me')
   async getProfile(@Req() req: any) {
-    const data = await this.usersService.findOne(req.user.userId || req.user.sub);
+    const data = await this.usersService.findOne(
+      req.user.userId || req.user.sub,
+    );
     return {
       statusCode: HttpStatus.OK,
       message: 'Profile retrieved successfully',
@@ -46,7 +60,9 @@ export class UsersController {
 
   @Get('me/saved-services')
   async getSavedServices(@Req() req: any) {
-    const data = await this.usersService.getSavedServices(req.user.sub || req.user.userId);
+    const data = await this.usersService.getSavedServices(
+      req.user.sub || req.user.userId,
+    );
     return {
       statusCode: HttpStatus.OK,
       message: 'Saved services retrieved successfully',
@@ -55,8 +71,14 @@ export class UsersController {
   }
 
   @Post('me/saved-services/:serviceId')
-  async toggleSavedService(@Req() req: any, @Param('serviceId') serviceId: string) {
-    const data = await this.usersService.toggleSavedService(req.user.sub || req.user.userId, +serviceId);
+  async toggleSavedService(
+    @Req() req: any,
+    @Param('serviceId') serviceId: string,
+  ) {
+    const data = await this.usersService.toggleSavedService(
+      req.user.sub || req.user.userId,
+      +serviceId,
+    );
     return {
       statusCode: HttpStatus.OK,
       message: 'Saved services updated successfully',

@@ -1,15 +1,26 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  DeleteDateColumn,
+  ManyToOne,
+  JoinColumn,
+  OneToMany,
+} from 'typeorm';
 import { Service } from '../../service/entities/service.entity';
 import { PackageItem } from './package-item.entity';
 import { Booking } from '../../booking/entities/booking.entity';
-
 
 @Entity('packages')
 export class Package {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Service, service => service.packages, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Service, (service) => service.packages, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'service_id' })
   service: Service;
 
@@ -22,10 +33,14 @@ export class Package {
   @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
   price: number;
 
-  @Column("simple-array", { nullable: true })
+  @Column('simple-array', { nullable: true })
   features: string[];
 
-  @Column({ type: 'enum', enum: ['one_time', 'weekly', 'monthly'], default: 'one_time' })
+  @Column({
+    type: 'enum',
+    enum: ['one_time', 'weekly', 'monthly'],
+    default: 'one_time',
+  })
   package_type: string;
 
   @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true })
@@ -34,7 +49,9 @@ export class Package {
   @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true })
   vendor_commission_percentage: number;
 
-  @OneToMany(() => PackageItem, (item: PackageItem) => item.package, { cascade: true })
+  @OneToMany(() => PackageItem, (item: PackageItem) => item.package, {
+    cascade: true,
+  })
   items: PackageItem[];
 
   @OneToMany(() => Booking, (booking: Booking) => booking.pkg)

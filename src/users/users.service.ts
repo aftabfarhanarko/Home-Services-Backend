@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -24,14 +28,22 @@ export class UsersService {
   async create(createUserDto: CreateUserDto): Promise<User> {
     const existingUser = await this.findByPhone(createUserDto.phone);
     if (existingUser) {
-      throw new BadRequestException('User with this phone number already exists');
+      throw new BadRequestException(
+        'User with this phone number already exists',
+      );
     }
 
     const user = this.userRepository.create({
       ...createUserDto,
-      role: createUserDto.roleId ? { id: createUserDto.roleId } as any : undefined,
-      vendor: createUserDto.vendor_id ? { id: createUserDto.vendor_id } as any : undefined,
-      agent: createUserDto.agent_id ? { id: createUserDto.agent_id } as any : undefined,
+      role: createUserDto.roleId
+        ? ({ id: createUserDto.roleId } as any)
+        : undefined,
+      vendor: createUserDto.vendor_id
+        ? ({ id: createUserDto.vendor_id } as any)
+        : undefined,
+      agent: createUserDto.agent_id
+        ? ({ id: createUserDto.agent_id } as any)
+        : undefined,
     });
     const savedUser = await this.userRepository.save(user);
 
@@ -40,10 +52,16 @@ export class UsersService {
         where: { id: savedUser.id },
         relations: { role: true },
       });
-      if (savedUserWithRole?.role?.name?.toLowerCase() === 'super admin' || savedUserWithRole?.role?.name?.toLowerCase() === 'superadmin') {
+      if (
+        savedUserWithRole?.role?.name?.toLowerCase() === 'super admin' ||
+        savedUserWithRole?.role?.name?.toLowerCase() === 'superadmin'
+      ) {
         const message = `You have been added as a Super Admin on Rajseba. You can login using your phone number: ${savedUser.phone}`;
-        this.smsService.sendMessage(savedUser.phone, message).catch(err => {
-          console.error(`Failed to send Super Admin creation SMS to ${savedUser.phone}:`, err);
+        this.smsService.sendMessage(savedUser.phone, message).catch((err) => {
+          console.error(
+            `Failed to send Super Admin creation SMS to ${savedUser.phone}:`,
+            err,
+          );
         });
       }
     }
@@ -64,35 +82,59 @@ export class UsersService {
     if (user?.role?.toLowerCase() === 'vendor') {
       const vendorWhere: any = [
         { id: user.sub, ...whereRole },
-        { vendor: { id: user.sub }, ...whereRole }
+        { vendor: { id: user.sub }, ...whereRole },
       ];
       return this.userRepository.find({
         where: vendorWhere,
-        relations: { role: true, profile: USER_PROFILE_RELATIONS, vendor: true, agent: true }
+        relations: {
+          role: true,
+          profile: USER_PROFILE_RELATIONS,
+          vendor: true,
+          agent: true,
+        },
       });
     } else if (user?.role?.toLowerCase() === 'agent') {
       const agentWhere: any = [
         { id: user.sub, ...whereRole },
-        { agent: { id: user.sub }, ...whereRole }
+        { agent: { id: user.sub }, ...whereRole },
       ];
-      return this.userRepository.find({ 
+      return this.userRepository.find({
         where: agentWhere,
-        relations: { role: true, profile: USER_PROFILE_RELATIONS, vendor: true, agent: true } 
+        relations: {
+          role: true,
+          profile: USER_PROFILE_RELATIONS,
+          vendor: true,
+          agent: true,
+        },
       });
-    } else if (user?.role?.toLowerCase() === 'super admin' || user?.role?.toLowerCase() === 'superadmin') {
-      const adminWhere: any = Object.keys(whereRole).length > 0 ? whereRole : undefined;
-      return this.userRepository.find({ 
+    } else if (
+      user?.role?.toLowerCase() === 'super admin' ||
+      user?.role?.toLowerCase() === 'superadmin'
+    ) {
+      const adminWhere: any =
+        Object.keys(whereRole).length > 0 ? whereRole : undefined;
+      return this.userRepository.find({
         where: adminWhere,
-        relations: { role: true, profile: USER_PROFILE_RELATIONS, vendor: true, agent: true } 
+        relations: {
+          role: true,
+          profile: USER_PROFILE_RELATIONS,
+          vendor: true,
+          agent: true,
+        },
       });
     }
-    
+
     // Fallback for regular clients/users: only return their own profile
     if (user && user.sub) {
       const fallbackWhere: any = { id: user.sub, ...whereRole };
       return this.userRepository.find({
         where: fallbackWhere,
-        relations: { role: true, profile: USER_PROFILE_RELATIONS, vendor: true, agent: true }
+        relations: {
+          role: true,
+          profile: USER_PROFILE_RELATIONS,
+          vendor: true,
+          agent: true,
+        },
       });
     }
 
@@ -100,9 +142,9 @@ export class UsersService {
   }
 
   async findOne(id: number): Promise<User> {
-    const user = await this.userRepository.findOne({ 
-      where: { id }, 
-      relations: { role: true, profile: USER_PROFILE_RELATIONS } 
+    const user = await this.userRepository.findOne({
+      where: { id },
+      relations: { role: true, profile: USER_PROFILE_RELATIONS },
     });
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
@@ -111,7 +153,10 @@ export class UsersService {
   }
 
   async findByPhone(phone: string): Promise<User | null> {
-    return this.userRepository.findOne({ where: { phone }, relations: { role: true } });
+    return this.userRepository.findOne({
+      where: { phone },
+      relations: { role: true },
+    });
   }
 
   async findByRoleName(roleName: string): Promise<User[]> {
@@ -132,8 +177,10 @@ export class UsersService {
     }
 
     const wasInactive = existingUser.status !== 'active';
-    const roleUpdate = updateUserDto.roleId ? { role: { id: updateUserDto.roleId } as any } : {};
-    
+    const roleUpdate = updateUserDto.roleId
+      ? { role: { id: updateUserDto.roleId } as any }
+      : {};
+
     const user = await this.userRepository.preload({
       id,
       ...updateUserDto,
@@ -150,8 +197,11 @@ export class UsersService {
       const roleName = existingUser.role?.name?.toLowerCase() || '';
       if (roleName === 'vendor' || roleName === 'agent') {
         const message = `Congratulations! Your Rajseba account has been activated. Please login to your dashboard to manage your activities.`;
-        this.smsService.sendMessage(savedUser.phone, message).catch(err => {
-          console.error(`Failed to send activation SMS to ${savedUser.phone}:`, err);
+        this.smsService.sendMessage(savedUser.phone, message).catch((err) => {
+          console.error(
+            `Failed to send activation SMS to ${savedUser.phone}:`,
+            err,
+          );
         });
       }
     }
@@ -161,13 +211,16 @@ export class UsersService {
 
   async remove(id: number): Promise<void> {
     const result = await this.userRepository.delete(id);
-    
+
     if (result.affected === 0) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
   }
 
-  async updateRefreshToken(id: number, refreshToken: string | null): Promise<void> {
+  async updateRefreshToken(
+    id: number,
+    refreshToken: string | null,
+  ): Promise<void> {
     await this.userRepository.update(id, { refreshToken: refreshToken as any });
   }
 
@@ -191,9 +244,9 @@ export class UsersService {
       user.savedServices = [];
     }
 
-    const isSaved = user.savedServices.some(s => s.id === serviceId);
+    const isSaved = user.savedServices.some((s) => s.id === serviceId);
     if (isSaved) {
-      user.savedServices = user.savedServices.filter(s => s.id !== serviceId);
+      user.savedServices = user.savedServices.filter((s) => s.id !== serviceId);
     } else {
       user.savedServices.push({ id: serviceId } as any);
     }

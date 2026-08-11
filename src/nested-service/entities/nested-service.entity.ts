@@ -1,18 +1,27 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  DeleteDateColumn,
+  ManyToOne,
+  JoinColumn,
+  OneToMany,
+} from 'typeorm';
 import { Service } from '../../service/entities/service.entity';
 import { SubService } from 'src/sub-service/entities/sub-service.entity';
-
 
 @Entity('nested_services')
 export class NestedService {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Service, service => service.nestedServices, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Service, (service) => service.nestedServices, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'service_id' })
   service: Service;
-
-
 
   @Column()
   name: string;
@@ -29,7 +38,9 @@ export class NestedService {
   @Column({ type: 'boolean', default: false })
   is_contact_for_price: boolean;
 
-  @OneToMany(() => SubService, subService => subService.nestedService, { cascade: true })
+  @OneToMany(() => SubService, (subService) => subService.nestedService, {
+    cascade: true,
+  })
   subServices: SubService[];
 
   @CreateDateColumn()

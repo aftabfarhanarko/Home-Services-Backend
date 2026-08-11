@@ -1,4 +1,13 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, CreateDateColumn, UpdateDateColumn, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  OneToMany,
+  CreateDateColumn,
+  UpdateDateColumn,
+  JoinColumn,
+} from 'typeorm';
 import { Devision } from '../../devision/entities/devision.entity';
 import { Area } from '../../area/entities/area.entity';
 
@@ -22,11 +31,13 @@ export class District {
   @Column({ nullable: true })
   latitude: string;
 
-  @ManyToOne(() => Devision, devision => devision.districts, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Devision, (devision) => devision.districts, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'devision_id' })
   devision: Devision;
 
-  @OneToMany(() => Area, area => area.district)
+  @OneToMany(() => Area, (area) => area.district)
   areas: Area[];
 
   @CreateDateColumn()

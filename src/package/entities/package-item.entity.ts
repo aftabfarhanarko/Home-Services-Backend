@@ -7,7 +7,9 @@ export class PackageItem {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Package, (pkg: Package) => pkg.items, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Package, (pkg: Package) => pkg.items, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'package_id' })
   package: Package;
 

@@ -7,10 +7,7 @@ import { CustomShiftingController } from './custom-shifting.controller';
 import { SmsModule } from '../sms/sms.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([CustomShifting, User]),
-    SmsModule,
-  ],
+  imports: [TypeOrmModule.forFeature([CustomShifting, User]), SmsModule],
   controllers: [CustomShiftingController],
   providers: [CustomShiftingService],
   exports: [CustomShiftingService],

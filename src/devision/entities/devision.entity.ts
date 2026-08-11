@@ -1,4 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToMany,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { District } from '../../district/entities/district.entity';
 
 @Entity('devisions')
@@ -21,7 +28,7 @@ export class Devision {
   @Column({ nullable: true })
   latitude: string;
 
-  @OneToMany(() => District, district => district.devision)
+  @OneToMany(() => District, (district) => district.devision)
   districts: District[];
 
   @CreateDateColumn()

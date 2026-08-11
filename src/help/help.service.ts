@@ -90,7 +90,7 @@ export class HelpService {
     }
 
     const user = await this.userRepository.findOne({ where: { id: userId } });
-    const name = user ? (user.name || 'Client') : 'Client';
+    const name = user ? user.name || 'Client' : 'Client';
 
     const newReply = {
       sender: 'user' as const,
@@ -129,8 +129,10 @@ export class HelpService {
       throw new NotFoundException('Ticket not found');
     }
 
-    const adminUser = await this.userRepository.findOne({ where: { id: adminUserId } });
-    const name = adminUser ? (adminUser.name || 'Admin') : 'Admin';
+    const adminUser = await this.userRepository.findOne({
+      where: { id: adminUserId },
+    });
+    const name = adminUser ? adminUser.name || 'Admin' : 'Admin';
 
     const newReply = {
       sender: 'admin' as const,

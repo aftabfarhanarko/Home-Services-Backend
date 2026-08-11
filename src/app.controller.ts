@@ -15,7 +15,7 @@ export class AppController {
     return {
       status: 'success',
       message: 'API is up and running!',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
   }
 
@@ -24,7 +24,7 @@ export class AppController {
     return {
       success: true,
       message: 'Platform statistics retrieved successfully',
-      data: await this.appService.getPublicStats()
+      data: await this.appService.getPublicStats(),
     };
   }
 }

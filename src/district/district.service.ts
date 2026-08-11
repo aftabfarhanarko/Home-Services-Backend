@@ -22,11 +22,16 @@ export class DistrictService {
   }
 
   async findAll() {
-    return await this.districtRepository.find({ relations: { devision: true, areas: true } });
+    return await this.districtRepository.find({
+      relations: { devision: true, areas: true },
+    });
   }
 
   async findOne(id: number) {
-    const district = await this.districtRepository.findOne({ where: { id }, relations: { devision: true, areas: true } });
+    const district = await this.districtRepository.findOne({
+      where: { id },
+      relations: { devision: true, areas: true },
+    });
     if (!district) {
       throw new NotFoundException(`District with ID ${id} not found`);
     }
@@ -36,7 +41,7 @@ export class DistrictService {
   async update(id: number, updateDistrictDto: UpdateDistrictDto) {
     const district = await this.findOne(id);
     const { devision_id, ...data } = updateDistrictDto;
-    
+
     if (devision_id) {
       district.devision = { id: devision_id } as any;
     }

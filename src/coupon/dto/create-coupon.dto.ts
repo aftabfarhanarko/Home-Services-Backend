@@ -8,7 +8,10 @@ import {
   IsDateString,
   Min,
 } from 'class-validator';
-import { CouponApplicableTo, CouponDiscountType } from '../entities/coupon.entity';
+import {
+  CouponApplicableTo,
+  CouponDiscountType,
+} from '../entities/coupon.entity';
 
 export class CreateCouponDto {
   @IsNotEmpty()

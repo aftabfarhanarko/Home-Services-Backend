@@ -1,4 +1,10 @@
-import { IsString, IsOptional, IsNotEmpty, IsArray, IsNumber } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsNotEmpty,
+  IsArray,
+  IsNumber,
+} from 'class-validator';
 
 export class CreateCustomShiftingDto {
   @IsNotEmpty()

@@ -17,9 +17,13 @@ export class CategoryService {
     const category = this.categoryRepository.create(rest);
 
     if (parentId) {
-      const parent = await this.categoryRepository.findOne({ where: { id: parentId } });
+      const parent = await this.categoryRepository.findOne({
+        where: { id: parentId },
+      });
       if (!parent) {
-        throw new NotFoundException(`Parent category with ID ${parentId} not found`);
+        throw new NotFoundException(
+          `Parent category with ID ${parentId} not found`,
+        );
       }
       category.parent = parent;
     }
@@ -38,9 +42,9 @@ export class CategoryService {
   }
 
   async findOne(id: number): Promise<Category> {
-    const category = await this.categoryRepository.findOne({ 
+    const category = await this.categoryRepository.findOne({
       where: { id },
-      relations: { children: true, parent: true }
+      relations: { children: true, parent: true },
     });
     if (!category) {
       throw new NotFoundException(`Category with ID ${id} not found`);
@@ -48,9 +52,12 @@ export class CategoryService {
     return category;
   }
 
-  async update(id: number, updateCategoryDto: UpdateCategoryDto): Promise<Category> {
+  async update(
+    id: number,
+    updateCategoryDto: UpdateCategoryDto,
+  ): Promise<Category> {
     const { parentId, ...rest } = updateCategoryDto;
-    
+
     const category = await this.categoryRepository.preload({
       id,
       ...rest,
@@ -60,9 +67,13 @@ export class CategoryService {
       if (parentId === null) {
         category.parent = null;
       } else {
-        const parent = await this.categoryRepository.findOne({ where: { id: parentId } });
+        const parent = await this.categoryRepository.findOne({
+          where: { id: parentId },
+        });
         if (!parent) {
-          throw new NotFoundException(`Parent category with ID ${parentId} not found`);
+          throw new NotFoundException(
+            `Parent category with ID ${parentId} not found`,
+          );
         }
         category.parent = parent;
       }
@@ -77,7 +88,7 @@ export class CategoryService {
 
   async remove(id: number): Promise<void> {
     const result = await this.categoryRepository.delete(id);
-    
+
     if (result.affected === 0) {
       throw new NotFoundException(`Category with ID ${id} not found`);
     }

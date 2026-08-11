@@ -1,4 +1,10 @@
-import { IsString, IsNotEmpty, IsOptional, IsArray, ArrayMaxSize } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsArray,
+  ArrayMaxSize,
+} from 'class-validator';
 
 export class CreateBlogDto {
   @IsString()

@@ -1,7 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CustomRequest, CustomRequestStatus } from './entities/custom-request.entity';
+import {
+  CustomRequest,
+  CustomRequestStatus,
+} from './entities/custom-request.entity';
 import { CreateCustomRequestDto } from './dto/create-custom-request.dto';
 import { User } from '../users/entities/user.entity';
 
@@ -26,7 +29,9 @@ export class CustomRequestService {
     });
 
     if (createDto.user_id) {
-      const user = await this.userRepository.findOne({ where: { id: createDto.user_id } });
+      const user = await this.userRepository.findOne({
+        where: { id: createDto.user_id },
+      });
       if (user) {
         request.user = user;
       }
@@ -55,7 +60,10 @@ export class CustomRequestService {
     return request;
   }
 
-  async updateStatus(id: number, status: CustomRequestStatus): Promise<CustomRequest> {
+  async updateStatus(
+    id: number,
+    status: CustomRequestStatus,
+  ): Promise<CustomRequest> {
     const request = await this.findOne(id);
     request.status = status;
     return await this.requestRepository.save(request);

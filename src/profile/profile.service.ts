@@ -22,21 +22,29 @@ export class ProfileService {
 
   private applyRelationFields(
     profile: Profile,
-    dto: Pick<CreateProfileDto, 'user_id' | 'category_ids' | 'devision_id' | 'district_id' | 'area_id'>,
+    dto: Pick<
+      CreateProfileDto,
+      'user_id' | 'category_ids' | 'devision_id' | 'district_id' | 'area_id'
+    >,
   ) {
     if (dto.user_id !== undefined) {
       profile.user = { id: dto.user_id } as any;
     }
     if (dto.category_ids !== undefined) {
-      profile.categories = dto.category_ids.length > 0
-        ? dto.category_ids.map((id) => ({ id } as any))
-        : [];
+      profile.categories =
+        dto.category_ids.length > 0
+          ? dto.category_ids.map((id) => ({ id }) as any)
+          : [];
     }
     if (dto.devision_id !== undefined) {
-      profile.devision = dto.devision_id ? ({ id: dto.devision_id } as any) : null;
+      profile.devision = dto.devision_id
+        ? ({ id: dto.devision_id } as any)
+        : null;
     }
     if (dto.district_id !== undefined) {
-      profile.district = dto.district_id ? ({ id: dto.district_id } as any) : null;
+      profile.district = dto.district_id
+        ? ({ id: dto.district_id } as any)
+        : null;
     }
     if (dto.area_id !== undefined) {
       profile.area = dto.area_id ? ({ id: dto.area_id } as any) : null;

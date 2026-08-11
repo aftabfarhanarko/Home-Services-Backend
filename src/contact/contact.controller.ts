@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { ContactService } from './contact.service';
 import { CreateContactDto } from './dto/create-contact.dto';
 import { UpdateContactDto } from './dto/update-contact.dto';
@@ -26,7 +35,10 @@ export class ContactController {
   }
 
   @Patch(':id')
-  async update(@Param('id', ParseIntPipe) id: number, @Body() updateContactDto: UpdateContactDto) {
+  async update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateContactDto: UpdateContactDto,
+  ) {
     const data = await this.contactService.update(id, updateContactDto);
     return { success: true, message: 'Contact updated successfully', data };
   }
