@@ -49,17 +49,18 @@ import { UploadModule } from './upload/upload.module';
         autoLoadEntities: true,
         synchronize: true, // Auto-sync tables in all environments since migrations are not configured
         logging: false, // Turn off DB logging in performance mode
+        ssl: { rejectUnauthorized: false }, // Essential for Neon PostgreSQL SSL stability in serverless/cloud environments
         extra: {
-          max: 30, // Increase max connection pool size for faster concurrent queries
-          idleTimeoutMillis: 10000, // Faster idle cleanup
-          connectionTimeoutMillis: 3000, // Quick timeout on stuck connections
+          max: 10, // Serverless functions work better with smaller pool limits per instance
+          idleTimeoutMillis: 30000,
+          connectionTimeoutMillis: 10000, // Give Neon serverless cold start enough time (10s) to awaken without throwing instant 500 error
         },
       }),
       inject: [ConfigService],
     }),
     ThrottlerModule.forRoot([{
       ttl: 60000,
-      limit: 120, // High rate limit to avoid slowing down API responses
+      limit: 12000, // High rate limit to avoid slowing down API responses
     }]),
     CacheModule.register({
       isGlobal: true,
