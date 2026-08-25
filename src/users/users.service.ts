@@ -26,11 +26,19 @@ export class UsersService {
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
-    const existingUser = await this.findByPhone(createUserDto.phone);
-    if (existingUser) {
-      throw new BadRequestException(
-        'User with this phone number already exists',
-      );
+    if (createUserDto.phone) {
+      const existingUser = await this.findByPhone(createUserDto.phone);
+      if (existingUser) {
+        throw new BadRequestException(
+          'User with this phone number already exists',
+        );
+      }
+    }
+    if (createUserDto.email) {
+      const existingUserEmail = await this.findByEmail(createUserDto.email);
+      if (existingUserEmail) {
+        throw new BadRequestException('User with this email already exists');
+      }
     }
 
     const user = this.userRepository.create({
@@ -153,8 +161,25 @@ export class UsersService {
   }
 
   async findByPhone(phone: string): Promise<User | null> {
+    if (!phone) return null;
     return this.userRepository.findOne({
       where: { phone },
+      relations: { role: true },
+    });
+  }
+
+  async findByEmail(email: string): Promise<User | null> {
+    if (!email) return null;
+    return this.userRepository.findOne({
+      where: { email },
+      relations: { role: true },
+    });
+  }
+
+  async findByEmailOrPhone(identifier: string): Promise<User | null> {
+    if (!identifier) return null;
+    return this.userRepository.findOne({
+      where: [{ email: identifier }, { phone: identifier }],
       relations: { role: true },
     });
   }

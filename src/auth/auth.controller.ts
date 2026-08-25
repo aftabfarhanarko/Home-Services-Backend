@@ -8,8 +8,8 @@ import {
   Request,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { SendOtpDto } from './dto/send-otp.dto';
-import { VerifyOtpDto } from './dto/verify-otp.dto';
+import { LoginDto } from './dto/login.dto';
+import { RegisterDto } from './dto/register.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
@@ -17,34 +17,25 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post('send-otp')
-  @HttpCode(HttpStatus.OK)
-  async sendOtp(@Body() sendOtpDto: SendOtpDto) {
-    const result = await this.authService.sendOtp(sendOtpDto);
+  @Post('register')
+  @HttpCode(HttpStatus.CREATED)
+  async register(@Body() registerDto: RegisterDto) {
+    const data = await this.authService.register(registerDto);
     return {
-      statusCode: HttpStatus.OK,
-      message: result.message,
-    };
-  }
-
-  @Post('verify-otp')
-  @HttpCode(HttpStatus.OK)
-  async verifyOtp(@Body() verifyOtpDto: VerifyOtpDto) {
-    const data = await this.authService.verifyOtp(verifyOtpDto);
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'OTP verified successfully',
+      statusCode: HttpStatus.CREATED,
+      message: 'User registered successfully',
       data,
     };
   }
 
-  @Post('resend-otp')
+  @Post('login')
   @HttpCode(HttpStatus.OK)
-  async resendOtp(@Body() sendOtpDto: SendOtpDto) {
-    const result = await this.authService.resendOtp(sendOtpDto);
+  async login(@Body() loginDto: LoginDto) {
+    const data = await this.authService.login(loginDto);
     return {
       statusCode: HttpStatus.OK,
-      message: result.message,
+      message: 'Login successful',
+      data,
     };
   }
 

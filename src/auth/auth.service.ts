@@ -3,109 +3,46 @@ import {
   BadRequestException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, MoreThan, IsNull } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { SendOtpDto } from './dto/send-otp.dto';
-import { VerifyOtpDto } from './dto/verify-otp.dto';
+import { LoginDto } from './dto/login.dto';
+import { RegisterDto } from './dto/register.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { UsersService } from '../users/users.service';
-import { SmsService } from '../sms/sms.service';
-import { Otp } from './entities/otp.entity';
 
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectRepository(Otp)
-    private readonly otpRepository: Repository<Otp>,
     private readonly usersService: UsersService,
-    private readonly smsService: SmsService,
     private readonly jwtService: JwtService,
   ) {}
 
-  async sendOtp(sendOtpDto: SendOtpDto) {
-    const { phone } = sendOtpDto;
+  async register(registerDto: RegisterDto) {
+    const { name, phone, email, password, roleId } = registerDto;
 
-    // Check rate limit: user can't request OTP if they have an active one generated within last 1 minute
-    const oneMinuteAgo = new Date(Date.now() - 1 * 60 * 1000);
-    const recentOtp = await this.otpRepository.findOne({
-      where: { phone, createdAt: MoreThan(oneMinuteAgo) },
-    });
-
-    if (recentOtp) {
-      throw new BadRequestException(
-        'Please wait 1 minute before requesting another OTP',
-      );
+    if (email) {
+      const existingUser = await this.usersService.findByEmail(email);
+      if (existingUser) {
+        throw new BadRequestException('User with this email already exists');
+      }
     }
 
-    const otpCode = Math.floor(1000 + Math.random() * 9000).toString(); // 4 digit OTP
-    const hashedOtp = await bcrypt.hash(otpCode, 10);
+    if (phone) {
+      const existingPhoneUser = await this.usersService.findByPhone(phone);
+      if (existingPhoneUser) {
+        throw new BadRequestException('User with this phone number already exists');
+      }
+    }
 
-    // Expires in 5 minutes
-    const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    const otpRecord = this.otpRepository.create({
+    const user = await this.usersService.create({
+      name,
       phone,
-      otpCode: hashedOtp,
-      expiresAt,
+      email,
+      password: hashedPassword,
+      roleId,
     });
-
-    await this.otpRepository.save(otpRecord);
-
-    await this.smsService.sendOtp(phone, otpCode);
-
-    return { message: 'OTP sent successfully' };
-  }
-
-  async verifyOtp(verifyOtpDto: VerifyOtpDto) {
-    const { phone, otpCode } = verifyOtpDto;
-
-    // Find the latest unverified OTP for this phone
-    const otpRecord = await this.otpRepository.findOne({
-      where: { phone, verifiedAt: IsNull() },
-      order: { createdAt: 'DESC' },
-    });
-
-    if (!otpRecord) {
-      throw new BadRequestException(
-        'No active OTP found for this phone number',
-      );
-    }
-
-    if (new Date() > otpRecord.expiresAt) {
-      throw new BadRequestException('OTP has expired');
-    }
-
-    if (otpRecord.attempts >= 3) {
-      throw new BadRequestException(
-        'Too many failed attempts. Please request a new OTP',
-      );
-    }
-
-    const isMatch = await bcrypt.compare(otpCode, otpRecord.otpCode);
-
-    if (!isMatch) {
-      otpRecord.attempts += 1;
-      await this.otpRepository.save(otpRecord);
-      throw new BadRequestException('Invalid OTP code');
-    }
-
-    // Mark OTP as verified
-    otpRecord.verifiedAt = new Date();
-    await this.otpRepository.save(otpRecord);
-
-    let user = await this.usersService.findByPhone(phone);
-    if (!user) {
-      user = await this.usersService.create({
-        name: 'User', // Default name
-        phone,
-      });
-    }
-
-    if (user.status === 'blocked' || user.status === 'inactive') {
-      throw new BadRequestException('User account is deactivated or blocked');
-    }
 
     await this.usersService.markPhoneAsVerified(user.id);
     await this.usersService.updateLastLogin(user.id);
@@ -117,8 +54,35 @@ export class AuthService {
     };
   }
 
-  async resendOtp(sendOtpDto: SendOtpDto) {
-    return this.sendOtp(sendOtpDto);
+  async login(loginDto: LoginDto) {
+    const { email, password } = loginDto;
+
+    // Allow login by email or phone (using email property as identifier)
+    const user = await this.usersService.findByEmailOrPhone(email);
+    if (!user) {
+      throw new UnauthorizedException('Invalid email address or password');
+    }
+
+    if (!user.password) {
+      throw new UnauthorizedException('Please set up a password or contact support');
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Invalid email address or password');
+    }
+
+    if (user.status === 'blocked' || user.status === 'inactive') {
+      throw new BadRequestException('User account is deactivated or blocked');
+    }
+
+    await this.usersService.updateLastLogin(user.id);
+
+    const tokens = await this.generateTokens(user.id, user.role?.name);
+    return {
+      user,
+      ...tokens,
+    };
   }
 
   async refreshToken(refreshTokenDto: RefreshTokenDto) {
