@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User, UserStatus } from './entities/user.entity';
@@ -41,6 +42,15 @@ export class UsersService {
       }
     }
 
+    if (createUserDto.password) {
+      if (
+        !createUserDto.password.startsWith('$2b$') &&
+        !createUserDto.password.startsWith('$2a$')
+      ) {
+        createUserDto.password = await bcrypt.hash(createUserDto.password, 10);
+      }
+    }
+
     const user = this.userRepository.create({
       ...createUserDto,
       role: createUserDto.roleId
@@ -55,7 +65,7 @@ export class UsersService {
     });
     const savedUser = await this.userRepository.save(user);
 
-    if (createUserDto.roleId) {
+    if (createUserDto.roleId && savedUser.phone) {
       const savedUserWithRole = await this.userRepository.findOne({
         where: { id: savedUser.id },
         relations: { role: true },
@@ -199,6 +209,15 @@ export class UsersService {
 
     if (!existingUser) {
       throw new NotFoundException(`User with ID ${id} not found`);
+    }
+
+    if (updateUserDto.password) {
+      if (
+        !updateUserDto.password.startsWith('$2b$') &&
+        !updateUserDto.password.startsWith('$2a$')
+      ) {
+        updateUserDto.password = await bcrypt.hash(updateUserDto.password, 10);
+      }
     }
 
     const wasInactive = existingUser.status !== 'active';
