@@ -1,0 +1,18 @@
+name: Render Self Keep Alive Cron
+
+on:
+  schedule:
+    # Runs every 14 minutes (Render free tier sleeps after 15 mins of inactivity)
+    - cron: '*/14 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ping-self-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Self Backend Health Endpoint
+        run: |
+          echo "Pinging Render Backend..."
+          RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" -X GET "https://home-services-backend-b6v4.onrender.com/health")
+          echo "$RESPONSE"
+          echo "Ping completed at $(date)"
