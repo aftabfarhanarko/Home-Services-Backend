@@ -2,8 +2,11 @@ name: Render Self Keep Alive Cron
 
 on:
   schedule:
-    # Runs every 14 minutes (Render free tier sleeps after 15 mins of inactivity)
-    - cron: '*/14 * * * *'
+    # Runs every 10 minutes (Render free tier sleeps after 15 mins of inactivity)
+    - cron: '*/10 * * * *'
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
